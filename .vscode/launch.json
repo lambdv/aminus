@@ -43,16 +43,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'gdc'",
+            "name": "Debug unit tests in library 'aminus'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=gdc"
+                    "--package=aminus"
                 ],
                 "filter": {
-                    "name": "gdc",
+                    "name": "aminus",
                     "kind": "lib"
                 }
             },
@@ -62,15 +62,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'gdc'",
+            "name": "Debug executable 'aminus'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=gdc",
-                    "--package=gdc"
+                    "--bin=aminus",
+                    "--package=aminus"
                 ],
                 "filter": {
-                    "name": "gdc",
+                    "name": "aminus",
                     "kind": "bin"
                 }
             },
@@ -80,16 +80,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'gdc'",
+            "name": "Debug unit tests in executable 'aminus'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=gdc",
-                    "--package=gdc"
+                    "--bin=aminus",
+                    "--package=aminus"
                 ],
                 "filter": {
-                    "name": "gdc",
+                    "name": "aminus",
                     "kind": "bin"
                 }
             },
@@ -105,7 +105,7 @@
                     "test",
                     "--no-run",
                     "--test=formulas_test",
-                    "--package=gdc"
+                    "--package=aminus"
                 ],
                 "filter": {
                     "name": "formulas_test",

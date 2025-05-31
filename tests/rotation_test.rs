@@ -1,7 +1,7 @@
-// use gdc::stat::Stat;
-// use gdc::functions::formulas::formulas::*;
-// use gdc::model::stattable::StatTable;
-// use gdc::model::rotation::rotation::Rotation;
+// use aminus::stat::Stat;
+// use aminus::functions::formulas::formulas::*;
+// use aminus::model::stattable::StatTable;
+// use aminus::model::rotation::rotation::Rotation;
 
 // #[test]
 // fn test_rotation_function_passing() {
@@ -10,6 +10,4 @@
 //         String::from("normal attack"), 
 //         |s| s.get(&Stat::ATKPercent)
 //     );
-
-
 // }

@@ -1,73 +1,63 @@
-pub mod rotation{
-    use crate::model::stattable::StatTable;
-    use crate::model::stat::Stat;
+use crate::model::stattable::StatTable;
+use crate::model::statable::Statable;
+//use crate::computable::Computable;
 
-    // pub trait ComputableDamage {
-    //     fn execute(s: &StatTable) -> f32;
-    // }
+/// represents a sequence of action preformed by a character
+// #[derive(Debug, Clone, PartialEq, Default)]
+pub struct Rotation{        
+    inner: std::collections::HashMap<String, Box<dyn Fn(&dyn Statable) -> f32>>,
+}
 
-    /// Data structure that represents a character's rotation or sequence of action configuration.
-    /// 
-    #[derive(Debug, Clone, PartialEq, Default)]
-    pub struct Rotation{        
-        inner: std::collections::HashMap<String, fn(&StatTable)->f32>,
+impl Rotation {
+    /// Construct an empty Rotation
+    pub fn new() -> Self {
+        Self { inner: std::collections::HashMap::new() }
     }
 
-    impl Rotation {
-        pub fn new() -> Self {
-            Self { inner: std::collections::HashMap::new() }
+    /// Construct a Rotation with pre-defined actions
+    pub fn of(actions: Vec<(String, Box<dyn Fn(&dyn Statable) -> f32>)>) -> Self {
+        let mut map = std::collections::HashMap::new();
+        for (k, v) in actions {
+            map.insert(k, v);
         }
-
-        pub fn of(actions: &[(String, fn(&StatTable) -> f32)]) -> Self {
-            Self { 
-                inner: std::collections::HashMap::from_iter(
-                    actions.iter().map(|(name, action)| (name.clone(), *action))
-                )
-            }
-        }
-
-        pub fn add(&mut self, name: String, action: fn(&StatTable)->f32) -> & mut Self {
-            self.inner.insert(name, action);
-            self
-        }
-
-        pub fn execute(&self, stats: &StatTable) -> f32 {
-            self.inner.iter()
-                .map(|x| x.1)
-                .map(|x|x(stats))
-                .sum()
-        }
+        Self { inner: map }
     }
 
-    
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-        
-        #[test]
-        fn test_execute_empty() {
-            let r = Rotation::new();
-            let s = StatTable::new();
+    /// Add an action to the rotaiton
+    pub fn add(&mut self, name: String, action: Box<dyn Fn(&dyn Statable) -> f32>) -> & mut Self {
+        self.inner.insert(name, action);
+        self
+    }
 
-            let res = r.execute(&s);
-            debug_assert_eq!(res, 0.0)
-        }
-
-        #[test]
-        fn test_execute_populated() {
-            let r = Rotation::of(&[
-                (String::from("test"), |s| s.get(&Stat::FlatATK)),
-                (String::from("test2"), |s| s.get(&Stat::FlatATK)),
-            ]);
-
-            let s = StatTable::of(&[
-                (Stat::FlatATK, 1.6),
-            ]);
-
-            let res = r.execute(&s);
-            
-            debug_assert_eq!(res, 1.6*2.0)
-        }
+    /// Compute all actions using the provided stats and return the sum
+    pub fn execute(&self, stats: &StatTable) -> f32 {
+        self.inner.iter()
+            .map(|x| x.1)
+            .map(|x|x(stats))
+            .sum()
     }
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::stat::Stat;
+
+    #[test] fn empty_rotation_returns_0() {
+        let res = Rotation::new().execute(&StatTable::new());
+        debug_assert_eq!(res, 0.0)
+    }
+
+    #[test] fn populated_rotation_returns_sum_of_action_results() {
+        let r = Rotation::of(vec![
+            (String::from("test"), Box::new(|s| s.get(&Stat::FlatATK))),
+            (String::from("test2"), Box::new(|s| s.get(&Stat::FlatATK))),
+        ]);
+        let s = StatTable::of(&[
+            (Stat::FlatATK, 1.6),
+        ]);
+        let res = r.execute(&s);
+        debug_assert_eq!(res, 1.6*2.0)
+    }
+}

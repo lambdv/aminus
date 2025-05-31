@@ -1,0 +1,5 @@
+- artifact type
+- artifact builder
+- optimization algorithms
+- data factories (character, weapons, artifacts)
+- formula engine implementation

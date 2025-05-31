@@ -1,39 +1,34 @@
-
-
 pub mod formulas{
     use crate::model::stattable::*;
     use crate::model::stat::*;
-
-    pub fn total_atk(stats: &StatTable) -> f32 {
+    use crate::model::statable::*;
+    
+    
+    pub fn total_atk(stats: &impl Statable) -> f32 {
         let base_atk = stats.get(&Stat::BaseATK);
         let atk_percent = stats.get(&Stat::ATKPercent);
         let flat_atk = stats.get(&Stat::FlatATK);
-
-        base_atk * atk_percent + flat_atk
+        base_atk * (1.0+atk_percent) + flat_atk
     }
 
-    pub fn total_def(stats: &StatTable) -> f32 {
+    pub fn total_def(stats: &impl Statable) -> f32 {
         let flat_def = stats.get(&Stat::FlatDEF);
         let def_percent = stats.get(&Stat::DEFPercent);
         let base_def = stats.get(&Stat::BaseDEF);
-
-        base_def * def_percent + flat_def
+        base_def * (1.0+def_percent) + flat_def
     }
 
-    pub fn total_hp(stats: &StatTable) -> f32 { 
+    pub fn total_hp(stats: &impl Statable) -> f32 { 
         let flat_hp = stats.get(&Stat::FlatHP);
         let hp_percent = stats.get(&Stat::HPPercent);
         let base_hp = stats.get(&Stat::BaseHP);
-
-        base_hp * hp_percent + flat_hp
+        base_hp * (1.0+hp_percent) + flat_hp
     }
 
-
-    pub fn avg_crit_multiplier(stats: &StatTable) -> f32 {
+    pub fn avg_crit_multiplier(stats: &impl Statable) -> f32 {
         let cr = 1.0_f32.max(stats.get(&Stat::CritRate));
         let cd = stats.get(&Stat::CritDMG);
-
-        1.0 + cr*cd
+        1.0+(cr*cd)
     }
 
     pub fn def_multiplier(character_level: i8, enemy_level: i8, def_reduction: f32, def_ignore: f32,) -> f32{
@@ -92,16 +87,16 @@ pub mod formulas{
         amplifier: Amplifier,
         instances: f32,
         motion_value: f32,
-        character: &StatTable,
+        character: &dyn Statable,
         buffs: Option<&StatTable>
     ) -> f32 {
         if amplifier == Amplifier::Forward || amplifier == Amplifier::Reverse {
             assert!(element == Element::Pyro || element == Element::Hydro || element == Element::Cryo);
         }
 
-        let mut total = character.clone();
-
+        let mut total = StatTable::new();
         
+        total.add_table(character);
         if let Some(buffs) = buffs {
             total.add_table(buffs);
         }

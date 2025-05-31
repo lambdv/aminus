@@ -1,6 +1,6 @@
-use gdc::stat::Stat;
-use gdc::functions::formulas::formulas::*;
-use gdc::model::stattable::*;
+use aminus::stat::Stat;
+use aminus::functions::formulas::formulas::*;
+use aminus::model::stattable::*;
 
 #[test]
 fn test_atk_function() {

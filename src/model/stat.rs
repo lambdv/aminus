@@ -1,5 +1,5 @@
-
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+/// Stat type enumeration
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, serde::Deserialize)]
 pub enum Stat {
     BaseHP, 
     FlatHP, 
