@@ -26,7 +26,10 @@ pub mod formulas{
     }
 
     pub fn avg_crit_multiplier(stats: &impl Statable) -> f32 {
-        let cr = 1.0_f32.max(stats.get(&Stat::CritRate));
+        let cr = stats.get(&Stat::CritRate);
+        let cr = if cr > 1.0 { 1.0 } else { cr };
+        let cr = if cr < 0.0 { 0.0 } else { cr };
+
         let cd = stats.get(&Stat::CritDMG);
         1.0+(cr*cd)
     }
@@ -91,11 +94,10 @@ pub mod formulas{
         buffs: Option<&StatTable>
     ) -> f32 {
         if amplifier == Amplifier::Forward || amplifier == Amplifier::Reverse {
-            assert!(element == Element::Pyro || element == Element::Hydro || element == Element::Cryo);
+            assert!(element == Element::Pyro || element == Element::Hydro || element == Element::Cryo || element == Element::Anemo);
         }
 
         let mut total = StatTable::new();
-        
         total.add_table(character);
         if let Some(buffs) = buffs {
             total.add_table(buffs);
@@ -163,9 +165,67 @@ pub mod formulas{
             avg_crit_multiplier(&total),
             total_dmg_bonus,
             0.0,
-            def_multiplier(90, 90, def_reduction, def_ignore),
+            def_multiplier(90, 100, def_reduction, def_ignore),
             res_multiplier(0.1, resistance_reduction), // Assuming KQMC enemy with 10% base resistance
             amplifier_multiplier
         )
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::model::stattable::StatTable;
+        use crate::utils::testingutils::*;
+        use crate::utils::testingutils::*;
+        #[test] fn atk_fomrula() {
+            let base = 42.0;
+            let flat = 100.0;
+            let percentage = 1.2;
+            let expected: f32 = base * (1.0+percentage) + flat;
+            let actual: f32 = total_atk(
+                &StatTable::of(&[
+                    (Stat::BaseATK, base),
+                    (Stat::ATKPercent,percentage),
+                    (Stat::FlatATK, flat),
+                ])
+            );
+            debug_assert_eq!(expected, actual);
+        }
+
+        #[test]
+        fn test_avg_crit_multiplier() {
+            //edge cases
+            assert_eq!(avg_crit_multiplier(&StatTable::of(&[(Stat::CritRate, 0.0), (Stat::CritDMG, 0.0)])), 1.0); //0 cr, cd does not matter
+            assert_eq!(avg_crit_multiplier(&StatTable::of(&[(Stat::CritRate, 0.0), (Stat::CritDMG, 1.0)])), 1.0); //0 cr with some cd
+            assert_eq!(avg_crit_multiplier(&StatTable::of(&[(Stat::CritRate, -1.2), (Stat::CritDMG, 1.0)])), 1.0); //negative cr does not matter
+            assert_eq!(avg_crit_multiplier(&StatTable::of(&[(Stat::CritRate, 1.2), (Stat::CritDMG, 1.0)])), 2.0); //negative cr does not matter
+    
+            //normal cases
+            assert_eq!(avg_crit_multiplier(&StatTable::of(&[(Stat::CritRate, 1.0), (Stat::CritDMG, 1.0)])), 2.0);
+            assert_eq!(avg_crit_multiplier(&StatTable::of(&[(Stat::CritRate, 0.5), (Stat::CritDMG, 1.0)])), 1.5);
+            assert_eq!(avg_crit_multiplier(&StatTable::of(&[(Stat::CritRate, 0.7), (Stat::CritDMG, 1.2)])), 1.84);
+        }
+    
+        #[test]
+        fn test_def_multiplier() {
+            let enemy_level = 100;
+            let def_reduction = 0.0;
+            let def_ignore = 0.0;
+            assert!((def_multiplier(90, enemy_level, def_reduction, def_ignore) - 0.487179487179487).abs() < 0.0001);
+            assert!((def_multiplier(90, enemy_level, 0.5, 0.0) - 0.655172413793103).abs() < 0.0001);
+            assert!((def_multiplier(90, enemy_level, 0.5, 0.5) - 0.791666667).abs() < 0.0001);
+            assert!((def_multiplier(90, enemy_level, 0.9, 0.0) - 0.904761905).abs() < 0.0001);
+            assert!((def_multiplier(90, enemy_level, 100000.0, 0.0) - 0.904761905).abs() < 0.0001);
+        }
+    
+        #[test]
+        fn test_res_multiplier() {
+            let enemy_base_resistance = 0.1;
+            assert!((res_multiplier(enemy_base_resistance, 0.0) - 0.9).abs() < 0.0001);
+            assert!((res_multiplier(enemy_base_resistance, 0.2) - 1.05).abs() < 0.0001);
+            assert!((res_multiplier(enemy_base_resistance, 0.4) - 1.15).abs() < 0.0001);
+        }
+    }
 }
+
+
