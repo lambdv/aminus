@@ -1,36 +1,7 @@
 use crate::model::stat::Stat;
 use crate::model::stattable::StatTable;
-use crate::model::statable::Statable;
+use crate::model::statable::*;
 use crate::model::statable::ModifiableStatable;
-
-type Computable = dyn Fn(&dyn Statable) -> f32;
-pub struct ComputedStatTable {
-    constants: std::collections::HashMap<Stat, f32>,
-    closures: std::collections::HashMap<Stat, Box<Computable>>,
-}
-
-
-pub struct Weapon {
-    base_stat_value: f32,
-    main_stat_value: f32,
-    main_stat_type: Stat
-}
-
-impl Statable for Weapon{
-    fn get(&self, stat_type: &Stat) -> f32{
-        match stat_type{
-            Stat::BaseATK => self.base_stat_value,
-            s if *s == self.main_stat_type  => 0.0,
-            _ => 0.0,
-        }
-    }
-    fn iter(&self) -> Box<dyn Iterator<Item = (Stat, f32)> + '_> {
-        Box::new(vec![
-            (Stat::BaseATK, self.base_stat_value),
-            (self.main_stat_type, self.main_stat_value),
-        ].into_iter())
-    }
-}
 
 /// composite type
 pub struct Character {
@@ -46,7 +17,7 @@ pub struct Character {
 }
 
 impl Statable for Character{
-    fn iter(&self) -> Box<dyn Iterator<Item = (Stat, f32)> + '_> {
+    fn iter(&self) -> StatableIter {
         let iter = self
             .base_stats.iter()
             .chain(self.fluid_stats.iter())
@@ -58,36 +29,34 @@ impl Statable for Character{
             .chain(self.circlet.iter().flat_map(|s| s.iter()));
         Box::new(iter)
     }
-    // fn get(&self, stat_type: &Stat) -> f32{
-    //     let base_value = self.base_stats.get(stat_type);
-    //     let fluid_value = self.fluid_stats.get(stat_type);
-    //     let weapon_value = self.weapon.as_ref().map_or(0.0, |w| w.get(stat_type));
-    //     let flower_value = self.flower.as_ref().map_or(0.0, |f| f.get(stat_type));
-    //     let plume_value = self.plume.as_ref().map_or(0.0, |p| p.get(stat_type));
-    //     let sands_value = self.sands.as_ref().map_or(0.0, |s| s.get(stat_type));
-    //     let goblet_value = self.goblet.as_ref().map_or(0.0, |g| g.get(stat_type));
-    //     let circlet_value = self.circlet.as_ref().map_or(0.0, |c| c.get(stat_type));
-    //     base_value + fluid_value + weapon_value + flower_value + plume_value + sands_value + goblet_value + circlet_value
-    // }
-}
-
-
-
-pub enum Artifact{
-    Flower(),
-    Feather(),
-    Sands(),
-    Goblet(),
-    Circlet(),
-}
- 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_adding_and_getting() {
-
+    fn get(&self, stat_type: &Stat) -> f32{
+        let base_value = self.base_stats.get(stat_type);
+        let fluid_value = self.fluid_stats.get(stat_type);
+        let weapon_value = self.weapon.as_ref().map_or(0.0, |w| w.get(stat_type));
+        let flower_value = self.flower.as_ref().map_or(0.0, |f| f.get(stat_type));
+        let plume_value = self.plume.as_ref().map_or(0.0, |p| p.get(stat_type));
+        let sands_value = self.sands.as_ref().map_or(0.0, |s| s.get(stat_type));
+        let goblet_value = self.goblet.as_ref().map_or(0.0, |g| g.get(stat_type));
+        let circlet_value = self.circlet.as_ref().map_or(0.0, |c| c.get(stat_type));
+        base_value + fluid_value + weapon_value + flower_value + plume_value + sands_value + goblet_value + circlet_value
     }
-
 }
+
+impl ModifiableStatable for Character{
+    fn add(&mut self, stat_type: &Stat, value: f32)-> f32 {
+        self.fluid_stats.add(stat_type, value)
+    }
+    fn add_table(&mut self, other: StatableIter) -> &mut Self {
+        other.for_each(|(k, v)| {
+            self.add(&k, v);
+        });
+        self
+    }
+}
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     #[test] fn test_adding_and_getting() {
+//     }
+// }

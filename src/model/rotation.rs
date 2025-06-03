@@ -2,20 +2,21 @@ use crate::model::stattable::StatTable;
 use crate::model::statable::Statable;
 //use crate::computable::Computable;
 
+pub type ComputableFn = Box<dyn Fn(&dyn Statable) -> f32>;
+
 /// represents a sequence of action preformed by a character
 // #[derive(Debug, Clone, PartialEq, Default)]
-pub struct Rotation{        
-    inner: std::collections::HashMap<String, Box<dyn Fn(&dyn Statable) -> f32>>,
+pub struct Rotation {        
+    inner: std::collections::HashMap<String, ComputableFn>,
 }
 
 impl Rotation {
-    /// Construct an empty Rotation
+
     pub fn new() -> Self {
         Self { inner: std::collections::HashMap::new() }
     }
 
-    /// Construct a Rotation with pre-defined actions
-    pub fn of(actions: Vec<(String, Box<dyn Fn(&dyn Statable) -> f32>)>) -> Self {
+    pub fn of(actions: Vec<(String, ComputableFn)>) -> Self {
         let mut map = std::collections::HashMap::new();
         for (k, v) in actions {
             map.insert(k, v);
@@ -24,7 +25,7 @@ impl Rotation {
     }
 
     /// Add an action to the rotaiton
-    pub fn add(&mut self, name: String, action: Box<dyn Fn(&dyn Statable) -> f32>) -> & mut Self {
+    pub fn add(&mut self, name: String, action: ComputableFn) -> & mut Self {
         self.inner.insert(name, action);
         self
     }

@@ -1,0 +1,63 @@
+{
+    "5star": {
+        "FlatHP": 298.75,
+        "FlatATK": 19.45,
+        "FlatDEF": 23.15,
+        "HPPercent": 0.0583,
+        "ATKPercent": 0.0583,
+        "DEFPercent": 0.0729,
+        "ElementalMastery": 23.31,
+        "EnergyRecharge": 0.0648,
+        "CritRate": 0.0389,
+        "CritDMG": 0.0777
+    },
+    "4star": {
+        "FlatHP": 239.00,
+        "FlatATK": 15.56,
+        "FlatDEF": 18.52,
+        "HPPercent": 0.0466,
+        "ATKPercent": 0.0466,
+        "DEFPercent": 0.0583,
+        "ElementalMastery": 18.65,
+        "EnergyRecharge": 0.0518,
+        "CritRate": 0.0311,
+        "CritDMG": 0.0622
+    },
+    "3star": {
+        "FlatHP": 143.40,
+        "FlatATK": 9.34,
+        "FlatDEF": 11.11,
+        "HPPercent": 0.0350,
+        "ATKPercent": 0.0350,
+        "DEFPercent": 0.0437,
+        "ElementalMastery": 13.99,
+        "EnergyRecharge": 0.0389,
+        "CritRate": 0.0233,
+        "CritDMG": 0.0466
+    },
+    "2star": {
+        "FlatHP": 71.70,
+        "FlatATK": 4.67,
+        "FlatDEF": 5.56,
+        "HPPercent": 0.0233,
+        "ATKPercent": 0.0233,
+        "DEFPercent": 0.0291,
+        "ElementalMastery": 9.33,
+        "EnergyRecharge": 0.0259,
+        "CritRate": 0.0155,
+        "CritDMG": 0.0311
+    },
+    "1star": {
+        "FlatHP": 29.88,
+        "FlatATK": 1.95,
+        "FlatDEF": 2.31,
+        "HPPercent": 0.0146,
+        "ATKPercent": 0.0146,
+        "DEFPercent": 0.0182,
+        "ElementalMastery": 5.83,
+        "EnergyRecharge": 0.0162,
+        "CritRate": 0.0097,
+        "CritDMG": 0.0194
+    }
+
+}

@@ -32,8 +32,8 @@ use aminus::model::stat::*;
         (Stat::CritDMG, 0.1324),
         (Stat::EnergyRecharge, 0.1102),
     ]);
-    diluc.add_table(&weapon);
-    diluc.add_table(&artifacts);
+    diluc.add_table(weapon.iter());
+    diluc.add_table(artifacts.iter());
     
     assert_aprx!(diluc.get(&Stat::BaseATK), 844.85, 0.1);
     assert_aprx!(diluc.get(&Stat::ATKPercent), 0.5652, 0.1);

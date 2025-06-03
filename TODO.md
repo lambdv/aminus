@@ -1,4 +1,5 @@
 - artifact type
+- character/weapon factory
 - artifact builder
 - optimization algorithms
 - data factories (character, weapons, artifacts)

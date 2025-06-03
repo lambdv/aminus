@@ -98,9 +98,9 @@ pub mod formulas{
         }
 
         let mut total = StatTable::new();
-        total.add_table(character);
+        total.add_table(character.iter());
         if let Some(buffs) = buffs {
-            total.add_table(buffs);
+            total.add_table(buffs.iter());
         }
         
         let total_base_scaling_stat = match scaling {
