@@ -6,3 +6,4 @@ pub mod computable;
 pub mod character;
 pub mod weapon;
 pub mod artifact;
+pub mod irminsul_data_adaptor;
