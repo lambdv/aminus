@@ -63,27 +63,34 @@ impl NamedJSON for CharacterJSON {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct CharacterBaseStatJSON {
-    pub LVL: String,
-    pub BaseHP: String,
-    pub BaseATK: String,
-    pub BaseDEF: String,
-    pub AscensionStatType: String,
-    pub AscensionStatValue: String,
-    pub AscensionPhase: u8,
+    #[serde(rename = "LVL")]
+    pub lvl: String,
+    #[serde(rename = "BaseHP")]
+    pub base_hp: String,
+    #[serde(rename = "BaseATK")]
+    pub base_atk: String,
+    #[serde(rename = "BaseDEF")]
+    pub base_def: String,
+    #[serde(rename = "AscensionStatType")]
+    pub stat_type: String,
+    #[serde(rename = "AscensionStatValue")]
+    pub stat_value: String,
+    #[serde(rename = "AscensionPhase")]
+    pub phase: u8,
 }
 
 impl CharacterBaseStatJSON {
     pub fn to_stattable(&self) -> Result<StatTable>{
-        let substat = Stat::from_str(&self.AscensionStatType.as_str())
+        let substat = Stat::from_str(&self.stat_type.as_str())
             .map_err(|e| anyhow!("failed parse string to stat"))?;
 
-        let substat_value = parse_percentage(self.AscensionStatValue.as_str())
+        let substat_value = parse_percentage(self.stat_value.as_str())
             .map_err(|e| anyhow!("failed to parse string to f32: {}",e))?;
 
         return Ok(StatTable::of(&[
-            (Stat::BaseHP, self.BaseHP.parse::<f32>().unwrap()),
-            (Stat::BaseATK, self.BaseATK.parse::<f32>().unwrap()),
-            (Stat::BaseDEF, self.BaseDEF.parse::<f32>().unwrap()),
+            (Stat::BaseHP, self.base_hp.parse::<f32>().unwrap()),
+            (Stat::BaseATK, self.base_atk.parse::<f32>().unwrap()),
+            (Stat::BaseDEF, self.base_def.parse::<f32>().unwrap()),
             (substat, substat_value),
         ]));
     }
@@ -126,7 +133,8 @@ pub struct CharacterPassiveJSON {
 
 #[derive(Debug, Deserialize)]
 pub struct CharacterAscensionCostJSON {
-    pub AscensionPhase: u8,
+    #[serde(rename = "AscensionPhase")]
+    pub phase: u8,
     pub materials: Vec<CharacterAscensionMaterialJSON>,
 }
 
@@ -201,6 +209,93 @@ impl WeaponBaseStatJSON {
         Ok(stats)
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AllArtifactMainStatJson{
+    #[serde(rename = "5star")]
+    pub five_star:ArtifactMainStatJson,
+    #[serde(rename = "4star")]
+    pub four_star:ArtifactMainStatJson,
+    #[serde(rename = "3star")]
+    pub three_star:ArtifactMainStatJson,
+    #[serde(rename = "2star")]
+    pub two_star:ArtifactMainStatJson,
+    #[serde(rename = "1star")]
+    pub one_star:ArtifactMainStatJson,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ArtifactMainStatJson{
+    // #[serde(rename = "Level")]
+    // level: Vec<String>,
+    #[serde(rename = "FlatHP")]
+    pub flat_hp: Vec<f32>,
+    #[serde(rename = "FlatATK")]
+    pub flat_atk: Vec<f32>,
+    #[serde(rename = "HPPercent")]
+    pub hp_percent: Vec<f32>,
+    #[serde(rename = "ATKPercent")]
+    pub atk_percent: Vec<f32>,
+    #[serde(rename = "DEFPercent")]
+    pub def_percent: Vec<f32>,
+    #[serde(rename = "PhysicalDMGBonus")]
+    pub physical_dmg_bonus: Vec<f32>,
+    #[serde(rename = "ElementalDMGPercent")]
+    pub  elemental_dmg_percent: Vec<f32>,
+    #[serde(rename = "ElementalMastery")]
+    pub elemental_mastery: Vec<f32>,
+    #[serde(rename = "EnergyRecharge")]
+    pub energy_recharge: Vec<f32>,
+    #[serde(rename = "CritRate")]
+    pub crit_rate: Vec<f32>,
+    #[serde(rename = "CritDMG")]
+    pub crit_dmg: Vec<f32>,
+    #[serde(rename = "HealingBonus")]
+    pub healing_bonus: Vec<f32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AllArtifactSubStatJson{
+    #[serde(rename = "5star")]
+    pub five_star:ArtifactSubStatJson,
+    #[serde(rename = "4star")]
+    pub four_star:ArtifactSubStatJson,
+    #[serde(rename = "3star")]
+    pub three_star:ArtifactSubStatJson,
+    #[serde(rename = "2star")]
+    pub two_star:ArtifactSubStatJson,
+    #[serde(rename = "1star")]
+    pub one_star:ArtifactSubStatJson,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ArtifactSubStatJson{
+    // #[serde(rename = "Level")]
+    // level: Vec<String>,
+    #[serde(rename = "FlatHP")]
+    pub flat_hp: f32,
+    #[serde(rename = "FlatATK")]
+    pub flat_atk: f32,
+    #[serde(rename = "FlatDEF")]
+    pub flat_def: f32,
+    #[serde(rename = "HPPercent")]
+    pub hp_percent: f32,
+    #[serde(rename = "ATKPercent")]
+    pub atk_percent: f32,
+    #[serde(rename = "DEFPercent")]
+    pub def_percent: f32,
+    #[serde(rename = "ElementalMastery")]
+    pub elemental_mastery: f32,
+    #[serde(rename = "EnergyRecharge")]
+    pub energy_recharge: f32,
+    #[serde(rename = "CritRate")]
+    pub crit_rate: f32,
+    #[serde(rename = "CritDMG")]
+    pub crit_dmg: f32,
+}
+
+
+
 
 #[cfg(test)] mod tests {
     use super::*;

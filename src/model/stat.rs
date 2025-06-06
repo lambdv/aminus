@@ -50,6 +50,8 @@ pub enum Stat {
 
 
 
+
+
 pub enum Debuffs{
     DefReduction,
     DefIgnore,
@@ -121,6 +123,67 @@ pub enum ReactionType {
     Spread,
 }
 
+impl Stat{
+    pub fn is_elemental_dmg_bonus(&self) -> bool{
+        match &self {
+            Stat::PyroDMGBonus=>true, 
+            Stat::CryoDMGBonus =>true,
+            Stat::GeoDMGBonus =>true,
+            Stat::DendroDMGBonus =>true,
+            Stat::ElectroDMGBonus =>true,
+            Stat::HydroDMGBonus=>true,
+            Stat::AnemoDMGBonus =>true,
+            _ => false
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Stat::BaseHP => "BaseHP",
+            Stat::FlatHP => "FlatHP",
+            Stat::HPPercent => "HPPercent",
+            Stat::BaseATK => "BaseATK",
+            Stat::FlatATK => "FlatATK",
+            Stat::ATKPercent => "ATKPercent",
+            Stat::BaseDEF => "BaseDEF",
+            Stat::FlatDEF => "FlatDEF",
+            Stat::DEFPercent => "DEFPercent",
+            Stat::ElementalMastery => "ElementalMastery",
+            Stat::CritRate => "CritRate",
+            Stat::CritDMG => "CritDMG",
+            Stat::EnergyRecharge => "EnergyRecharge",
+            Stat::DMGBonus => "DMGBonus",
+            Stat::ElementalDMGBonus => "ElementalDMGBonus",
+            Stat::PyroDMGBonus => "PyroDMGBonus",
+            Stat::CryoDMGBonus => "CryoDMGBonus",
+            Stat::GeoDMGBonus => "GeoDMGBonus",
+            Stat::DendroDMGBonus => "DendroDMGBonus",
+            Stat::ElectroDMGBonus => "ElectroDMGBonus",
+            Stat::HydroDMGBonus => "HydroDMGBonus",
+            Stat::AnemoDMGBonus => "AnemoDMGBonus",
+            Stat::PhysicalDMGBonus => "PhysicalDMGBonus",
+            Stat::NormalATKDMGBonus => "NormalATKDMGBonus",
+            Stat::ChargeATKDMGBonus => "ChargeATKDMGBonus",
+            Stat::PlungeATKDMGBonus => "PlungeATKDMGBonus",
+            Stat::SkillDMGBonus => "SkillDMGBonus",
+            Stat::BurstDMGBonus => "BurstDMGBonus",
+            Stat::HealingBonus => "HealingBonus",
+            Stat::None => "None",
+            Stat::ReactionBonus => "ReactionBonus",
+            Stat::DefReduction => "DefReduction",
+            Stat::DefIgnore => "DefIgnore",
+            Stat::PyroResistanceReduction => "PyroResistanceReduction",
+            Stat::HydroResistanceReduction => "HydroResistanceReduction",
+            Stat::ElectroResistanceReduction => "ElectroResistanceReduction",
+            Stat::CryoResistanceReduction => "CryoResistanceReduction",
+            Stat::AnemoResistanceReduction => "AnemoResistanceReduction",
+            Stat::GeoResistanceReduction => "GeoResistanceReduction",
+            Stat::DendroResistanceReduction => "DendroResistanceReduction",
+            Stat::PhysicalResistanceReduction => "PhysicalResistanceReduction",
+        }
+    }
+}
+
 impl FromStr for Stat {
     type Err = ();
     fn from_str(name: &str) -> Result<Self, Self::Err> {
@@ -175,3 +238,9 @@ impl FromStr for Stat {
     }
 }
 
+impl std::fmt::Display for Stat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self.as_str();
+        write!(f, "{s}")
+    }
+}
