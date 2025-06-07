@@ -112,11 +112,7 @@ impl StatTableFactory{
         }
     }
 
-    // pub fn get_sub_stat_value_with_roll(rarity: i32, stat_type: Stat) -> Result<f32> {
-
-    // }
-
-
+    // pub fn get_sub_stat_value_with_roll(rarity: i32, stat_type: Stat) -> Result<f32> {}
 
     fn check_correct_level_for_rarity(level: i32, rarity: i32) -> bool {
         match rarity {
@@ -132,12 +128,14 @@ impl StatTableFactory{
 
     fn find_match<T: NamedJSON>(json_list: Vec<T>, name: &str) -> Result<T> {
         let matches = json_list.iter()
-            .filter(|c| flatten_str(c.name()) == flatten_str(name));
+            .filter(|c| flatten_str(c.name()) == flatten_str(name) || Self::fuzzy_match(name, c.name()));
 
-        if matches.clone().count() != 1 {
-            let matches = json_list.iter()
-                .filter(|c| StatTableFactory::fuzzy_match(name, c.name()));
-        }
+
+        // if matches.clone().count() == 0 {
+        //     let matches = json_list.iter()
+        //         .filter(|c| StatTableFactory::fuzzy_match(name, c.name()));
+        // }
+
             
         match matches.clone().count() {
             1 => Ok(matches.reduce(|x: &T, y: &T| x).unwrap().clone()),
@@ -145,7 +143,8 @@ impl StatTableFactory{
             _ => Err(anyhow!("More than 1 character with name {} found", name)),
         }
     }
-    fn fuzzy_match(needled: &str, haystack: &str) -> bool {
+
+    pub fn fuzzy_match(needled: &str, haystack: &str) -> bool {
         let needle = flatten_str(needled);
         let haystack = flatten_str(haystack);
         let mut nidx = 0;
@@ -179,6 +178,12 @@ impl StatTableFactory{
         assert_eq!(amber.get(&Stat::BaseHP), 9461.18);
         assert_eq!(amber.get(&Stat::BaseDEF), 600.62);
         assert_eq!(amber.get(&Stat::ATKPercent), 0.240);
+    }
+
+
+    #[test] fn fuzzy_match_test() {
+        assert!(StatTableFactory::fuzzy_match("ayaka","Kamisato Ayaka"));
+
     }
 
     #[test] fn get_chara_fuzzy() {
