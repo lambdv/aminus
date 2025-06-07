@@ -222,7 +222,6 @@ impl StatTableFactory{
 
         assert_eq!(StatTableFactory::get_sub_stat_value(0, Stat::BaseATK).is_err(), true);
         assert_eq!(StatTableFactory::get_sub_stat_value(5, Stat::PhysicalDMGBonus).is_err(), true);
-
     }
 
 }
