@@ -1,8 +1,8 @@
+/// module that provides function implementation of formulas to compute f32s from statables
 pub mod formulas{
     use crate::model::stattable::*;
     use crate::model::stat::*;
     use crate::model::statable::*;
-    
     
     pub fn total_atk(stats: &impl Statable) -> f32 {
         let base_atk = stats.get(&Stat::BaseATK);

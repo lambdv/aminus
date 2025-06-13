@@ -1,6 +1,7 @@
+/// module for testing functions
 pub mod testingutils{
-    #[macro_export]
-    macro_rules! assert_aprx {
+    /// assert a number according a persistion value
+    #[macro_export] macro_rules! assert_aprx {
         ($left:expr, $right:expr, $epsilon:expr $(,)?) => {{
             let (left_val, right_val, epsilon_val) = ($left, $right, $epsilon);
             if (left_val - right_val).abs() > epsilon_val {

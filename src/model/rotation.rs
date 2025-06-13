@@ -11,11 +11,11 @@ pub struct Rotation {
 }
 
 impl Rotation {
-
+    /// construct a new empty rotation
     pub fn new() -> Self {
         Self { inner: std::collections::HashMap::new() }
     }
-
+    /// construct a new rotation with default values
     pub fn of(actions: Vec<(String, ComputableFn)>) -> Self {
         let mut map = std::collections::HashMap::new();
         for (k, v) in actions {
@@ -24,13 +24,13 @@ impl Rotation {
         Self { inner: map }
     }
 
-    /// Add an action to the rotaiton
+    /// add an action to the rotation
     pub fn add(&mut self, name: String, action: ComputableFn) -> & mut Self {
         self.inner.insert(name, action);
         self
     }
 
-    /// Compute all actions using the provided stats and return the sum
+    /// compute and return sum of all actions based on a given statable instance
     pub fn execute(&self, stats: &StatTable) -> f32 {
         self.inner.iter()
             .map(|x| x.1)
@@ -40,8 +40,7 @@ impl Rotation {
 }
 
 
-#[cfg(test)]
-mod tests {
+#[cfg(test)] mod tests {
     use super::*;
     use crate::model::stat::Stat;
 

@@ -3,6 +3,7 @@ use crate::model::stattable::StatTable;
 use crate::model::statable::*;
 use crate::model::statable::ModifiableStatable;
 
+/// abstraction over statable to model an ingame weapon
 pub struct Weapon {
     base_stat_value: f32,
     main_stat_value: f32,
