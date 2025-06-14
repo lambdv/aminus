@@ -1,0 +1,9 @@
+- artifact type
+- character/weapon factory
+- artifact builder
+- optimization algorithms
+- data factories (character, weapons, artifacts)
+- executer factory
+- formula engine implementation
+- makes docs using dinosources
+    - use html or md
