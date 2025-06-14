@@ -2,7 +2,8 @@ use crate::model::stat::Stat;
 use crate::model::stattable::StatTable;
 
 pub type StatableIter<'a> = Box<dyn Iterator<Item = (Stat, f32)> + 'a>;
-// Collection of stats mapped to
+
+// Top level primative type that lets you get an f32 value mapped to a stat type enum
 pub trait Statable {
     ///gets all stats from a statable as an iter with stat-value pair tuples 
     fn iter(&self) -> StatableIter;
@@ -20,6 +21,8 @@ pub trait Statable {
         Box::new(res)
     }
 }
+
+/// Statable that is directly mutable
 pub trait ModifiableStatable: Statable {
     ///add amount to stat
     fn add(&mut self, stat_type: &Stat, value: f32) -> f32;

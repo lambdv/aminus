@@ -3,7 +3,8 @@ use crate::model::stattable::StatTable;
 use crate::model::statable::*;
 use crate::model::statable::ModifiableStatable;
 
-/// composite type
+/// abstraction over statable to represent an ingame character.
+/// composes static base stats, mutable fluid stats for buffs and composites a weapon and artifacts
 pub struct Character {
     base_stats: StatTable,
     fluid_stats: StatTable,
@@ -54,9 +55,9 @@ impl ModifiableStatable for Character{
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     #[test] fn test_adding_and_getting() {
-//     }
-// }
+#[cfg(test)] mod tests {
+    use super::*;
+    #[test] fn test_adding_and_getting() {
+        
+    }
+}

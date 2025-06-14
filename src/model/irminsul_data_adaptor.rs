@@ -14,7 +14,7 @@ use std::error::Error;
 use anyhow::{Result, anyhow};
 
 pub trait NamedJSON: Clone {
-fn name(&self) -> &str;
+    fn name(&self) -> &str;
 }
 
 #[derive(Debug, Deserialize)] 
