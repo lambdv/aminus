@@ -3,4 +3,5 @@
 - optimization algorithms
 - executer service
 - formula engine
-- makes docs using dinosources
+- simulator
+- energy recharge calculator

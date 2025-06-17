@@ -6,7 +6,7 @@ use aminus::model::rotation::Rotation;
 use aminus::model::stat::*;
 
 
-#[test] fn primative_solution_result() {
+#[test] fn primative_character_damage_calculation() {
     let mut diluc = StatTable::of(&[
         (Stat::BaseATK, 334.85),
         (Stat::CritRate, 0.192 + 0.05),
