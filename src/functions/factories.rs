@@ -84,7 +84,7 @@ impl StatTableFactory{
             .ok_or_else(|| anyhow!("invalid level {level}"))
     }
 
-    pub fn get_sub_stat_value(rarity: i32, stat_type: Stat) -> Result<f32> {
+    pub fn get_sub_stat_value(rarity: i8, stat_type: Stat) -> Result<f32> {
         let file: File = StatTableFactory::get_data_file("artifactSubStats.json")?;
         let json: AllArtifactSubStatJson = serde_json::from_reader(BufReader::new(file))?;
 
@@ -114,7 +114,10 @@ impl StatTableFactory{
 
     // pub fn get_sub_stat_value_with_roll(rarity: i32, stat_type: Stat) -> Result<f32> {}
 
-    fn check_correct_level_for_rarity(level: i8, rarity: i8) -> bool {
+    pub fn check_correct_level_for_rarity(level: i8, rarity: i8) -> bool {
+        if level < 0 {
+            return false;
+        }
         match rarity {
             1 => level <= 4,
             2 => level <= 4,
@@ -128,15 +131,16 @@ impl StatTableFactory{
 
     fn find_match<T: NamedJSON>(json_list: Vec<T>, name: &str) -> Result<T> {
         let matches = json_list.iter()
-            .filter(|c| flatten_str(c.name()) == flatten_str(name) || Self::fuzzy_match(name, c.name()));
-
+            .filter(|c| 
+                flatten_str(c.name()) == flatten_str(name) 
+                || Self::fuzzy_match(name, c.name()
+            ));
 
         // if matches.clone().count() == 0 {
         //     let matches = json_list.iter()
         //         .filter(|c| StatTableFactory::fuzzy_match(name, c.name()));
         // }
 
-            
         match matches.clone().count() {
             1 => Ok(matches.reduce(|x: &T, y: &T| x).unwrap().clone()),
             0 => Err(anyhow!("No character with name {} found", name)),
