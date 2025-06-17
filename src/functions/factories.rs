@@ -46,7 +46,7 @@ impl StatTableFactory{
 
 
 
-    pub fn get_main_stat_value(rarity: i32, level: i32, stat_type: Stat) -> Result<f32> {
+    pub fn get_main_stat_value(rarity: i8, level: i8, stat_type: &Stat) -> Result<f32> {
         if !Self::check_correct_level_for_rarity(level, rarity){
             return Err(anyhow!("invalid level and rarity combo: level={level} rarity={rarity}"));
         }
@@ -114,7 +114,7 @@ impl StatTableFactory{
 
     // pub fn get_sub_stat_value_with_roll(rarity: i32, stat_type: Stat) -> Result<f32> {}
 
-    fn check_correct_level_for_rarity(level: i32, rarity: i32) -> bool {
+    fn check_correct_level_for_rarity(level: i8, rarity: i8) -> bool {
         match rarity {
             1 => level <= 4,
             2 => level <= 4,
@@ -204,19 +204,19 @@ impl StatTableFactory{
     }
 
     #[test] fn test_get_mainstat_value() {
-        assert_eq!(StatTableFactory::get_main_stat_value(5, 20, Stat::FlatATK).unwrap(), 311.0);
-        assert_eq!(StatTableFactory::get_main_stat_value(1, 0, Stat::FlatATK).unwrap(), 8.0);
+        assert_eq!(StatTableFactory::get_main_stat_value(5, 20, &Stat::FlatATK).unwrap(), 311.0);
+        assert_eq!(StatTableFactory::get_main_stat_value(1, 0, &Stat::FlatATK).unwrap(), 8.0);
 
-        assert_eq!(StatTableFactory::get_main_stat_value(1, 0, Stat::PyroDMGBonus).unwrap(), 0.031);
+        assert_eq!(StatTableFactory::get_main_stat_value(1, 0, &Stat::PyroDMGBonus).unwrap(), 0.031);
 
 
-        assert_eq!(StatTableFactory::get_main_stat_value(0, 0, Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(-1, 0, Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(6, 0, Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(1, 5, Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(5, 21, Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(4, 17, Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(5, 20, Stat::BaseATK).is_err(), true);
+        assert_eq!(StatTableFactory::get_main_stat_value(0, 0, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatTableFactory::get_main_stat_value(-1, 0, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatTableFactory::get_main_stat_value(6, 0, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatTableFactory::get_main_stat_value(1, 5, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatTableFactory::get_main_stat_value(5, 21, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatTableFactory::get_main_stat_value(4, 17, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatTableFactory::get_main_stat_value(5, 20, &Stat::BaseATK).is_err(), true);
     }
 
     #[test] fn test_get_substat_value() {

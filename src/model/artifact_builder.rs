@@ -1,6 +1,8 @@
+use crate::factories::StatTableFactory;
 use crate::model::stattable::StatTable;
 use crate::model::statable::Statable;
 use crate::stat::Stat;
+use crate::statable::ModifiableStatable;
 
 /// Builder pattern for making artifact stattables
 pub struct ArtifactBuilder{
@@ -10,25 +12,48 @@ pub struct ArtifactBuilder{
     pub goblet: Option<ArtifactPiece>,
     pub circlet: Option<ArtifactPiece>,
 
-    pub rolls: std::collections::HashMap<(Stat,RollQuality),i8>,
-    pub constraints: std::collections::HashMap<Stat, i8>,
+    pub rolls: std::collections::HashMap<(Stat,RollQuality, i8),i8>, // stattype, quality, rarity : amount of rolls
+    pub constraints: std::collections::HashMap<(Stat, i8), i8>, // stattype, rarity : roll limit
 }
 
 impl ArtifactBuilder{
+
+
     //constructors
+    /// TOOD: verifiy stat_type for piece type
 
     /// constructs a new default artifact builder
     pub fn new(flower: Option<ArtifactPiece>, feather: Option<ArtifactPiece>, sands: Option<ArtifactPiece>, goblet: Option<ArtifactPiece>, circlet: Option<ArtifactPiece>,) -> Self {
-        let constraints =std::collections::HashMap::from_iter(
-            POSSIBLE_SUB_STATS.iter()
-                .map(|x| (x.clone(), ([&flower, &feather, &sands, &goblet, &circlet].iter()
-                    .filter(|y| y.is_some())
-                    .map(|y| y.as_ref().unwrap())
-                    .filter(|y| y.stat_type != *x)
-                    .map(|y| max_rolls_for_given(y, &x, false))
-                    .fold(0, |a,b: i8| a+b)) as i8
-                ))
-        );
+        // let constraints =std::collections::HashMap::from_iter(
+        //     POSSIBLE_SUB_STATS.iter()
+        //         .map(|x| (x.clone(), ([&flower, &feather, &sands, &goblet, &circlet].iter()
+        //             .filter(|y| y.is_some())
+        //             .map(|y| y.as_ref().unwrap())
+        //             .filter(|y| y.stat_type != *x)
+        //             .map(|y| max_rolls_for_given(y, &x, false))
+        //             .fold(0, |a,b: i8| a+b)) as i8
+        //         ))
+        // );
+
+        let mut constraints = std::collections::HashMap::new();
+        for stat in POSSIBLE_SUB_STATS {
+            let mut add_constraint = |x: (Stat, i8)| {
+                if let Some(count) = constraints.get_mut(&x) {
+                    *count += max_rolls_for_given(&piece, &stat, false);
+                } else {
+                    constraints.insert(x, max_rolls_for_given(&piece, &stat, false));
+                }
+            };
+            for piece in [flower.as_ref(), feather.as_ref(), sands.as_ref(), goblet.as_ref(), circlet.as_ref()] {
+                if let Some(piece) = piece {
+                    if piece.stat_type != *stat {
+                        add_constraint((*stat, piece.rarity));
+                    }
+                }
+            }
+        }
+
+
         ArtifactBuilder{flower, feather, sands, goblet, circlet,
             rolls: std::collections::HashMap::new(),
             constraints: constraints
@@ -43,15 +68,34 @@ impl ArtifactBuilder{
     /// 4-star artifacts have a x0.8 substat value modifer compared to 5-stars and penalty of -2 distributed substats per 4-star artifact
     /// 1 5-star and 4 4-star means the 5 star artifact will have a stat modifer of (1 * 1 + 0.8 * 4) / 5 = 0.84x rather than 1 
     pub fn kqm(flower: Option<ArtifactPiece>, feather: Option<ArtifactPiece>, sands: Option<ArtifactPiece>, goblet: Option<ArtifactPiece>, circlet: Option<ArtifactPiece>) -> Self {
-        let constraints =std::collections::HashMap::from_iter(
-            POSSIBLE_SUB_STATS.iter()
-                .map(|x| (x.clone(), ([&flower, &feather, &sands, &goblet, &circlet].iter()
-                        .filter(|y| y.is_some())
-                        .map(|y| y.as_ref().unwrap().stat_type)
-                        .filter(|y| y != x)
-                        .count()*2) as i8
-                ))
-        );
+        // let constraints =std::collections::HashMap::from_iter(
+        //     POSSIBLE_SUB_STATS.iter()
+        //         .map(|x| (x.clone(), ([&flower, &feather, &sands, &goblet, &circlet].iter()
+        //                 .filter(|y| y.is_some())
+        //                 .map(|y| y.as_ref().unwrap().stat_type)
+        //                 .filter(|y| y != x)
+        //                 .count()*2) as i8
+        //         ))
+        // );
+
+        let mut constraints = std::collections::HashMap::new();
+        for stat in POSSIBLE_SUB_STATS {
+            let mut add_constraint = |x: (Stat, i8)| {
+                if let Some(count) = constraints.get_mut(&x) {
+                    *count += 2;
+                } else {
+                    constraints.insert(x, 2);
+                }
+            };
+            for piece in [flower.as_ref(), feather.as_ref(), sands.as_ref(), goblet.as_ref(), circlet.as_ref()] {
+                if let Some(piece) = piece {
+                    if piece.stat_type != *stat {
+                        add_constraint((*stat, piece.rarity));
+                    } 
+                }
+            }
+        }
+
         let mut bob = ArtifactBuilder{flower, feather, sands, goblet, circlet,
             rolls: std::collections::HashMap::new(),
             constraints: constraints
@@ -62,21 +106,40 @@ impl ArtifactBuilder{
 
 
     //exports
-    
     pub fn build(&self) -> StatTable{
         StatTable::new()
     }
 
     pub fn main_stats(&self)  -> StatTable{
-        StatTable::new()
+        let mut res = StatTable::new();
+        self.main_pieces().iter().for_each(|spec| {
+            let value = StatTableFactory::get_main_stat_value(spec.rarity, spec.level, &spec.stat_type).unwrap(); //TODO: handle this maybe
+            res.add(&spec.stat_type, value);
+        });
+        res 
     }
 
     pub fn sub_stats(&self)  -> StatTable{
-        
-        
-        StatTable::new()
+        let mut res = StatTable::new();
+
+        self.rolls.iter().for_each(|((stat, quality), num_rolls)| {
+
+        });
+
+        res
     }
 
+
+    // getters
+
+    pub fn main_pieces(&self) -> [&ArtifactPiece; 5] {  
+        [&self.flower, &self.feather, &self.sands, &self.goblet, &self.circlet].iter()
+            .filter(|x| x.is_some())
+            .map(|x| x.as_ref().unwrap())
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap()
+    }
 
 
     //update methods
@@ -120,8 +183,8 @@ impl ArtifactBuilder{
     }
 
 
-    pub fn substat_constraint(&self, stat_type: &Stat) -> i8 {
-        self.constraints.get(stat_type).unwrap().clone()
+    pub fn substat_constraint(&self, stat_type: &Stat, rarity: i8) -> i8 {
+        self.constraints.get(&(stat_type.clone(), rarity)).unwrap().clone()
     }
 
     pub fn rolls_left(&self) -> i8 {
@@ -134,7 +197,8 @@ impl ArtifactBuilder{
 
 
 ///specifies an artifact
-#[derive(Clone)]
+
+#[derive(Clone, Debug)]
 pub struct ArtifactPiece {
     pub rarity: i8,
     pub level: i8,
@@ -343,101 +407,122 @@ pub fn valid_substat_type(stat_type: &Stat) -> bool {
     }
 
 
-#[test]
-fn test_artifact_builder() {
-    let five_star_artifacts = ArtifactBuilder::new(
-        Some(ArtifactPiece {
-            rarity: 5,
-            level: 20,
-            stat_type: Stat::FlatHP,
-        }),
-        Some(ArtifactPiece {
-            rarity: 5,
-            level: 20,
-            stat_type: Stat::FlatATK,
-        }),
-        Some(ArtifactPiece {
-            rarity: 5,
-            level: 20,
-            stat_type: Stat::ATKPercent,
-        }),
-        Some(ArtifactPiece {
-            rarity: 5,
-            level: 20,
-            stat_type: Stat::PyroDMGBonus,
-        }),
-        Some(ArtifactPiece {
-            rarity: 5,
-            level: 20,
-            stat_type: Stat::CritRate,
-        }),
-    );
+    #[test] fn test_artifact_builder() {
+        let five_star_artifacts = ArtifactBuilder::new(
+            Some(ArtifactPiece {
+                rarity: 5,
+                level: 20,
+                stat_type: Stat::FlatHP,
+            }),
+            Some(ArtifactPiece {
+                rarity: 5,
+                level: 20,
+                stat_type: Stat::FlatATK,
+            }),
+            Some(ArtifactPiece {
+                rarity: 5,
+                level: 20,
+                stat_type: Stat::ATKPercent,
+            }),
+            Some(ArtifactPiece {
+                rarity: 5,
+                level: 20,
+                stat_type: Stat::PyroDMGBonus,
+            }),
+            Some(ArtifactPiece {
+                rarity: 5,
+                level: 20,
+                stat_type: Stat::CritRate,
+            }),
+        );
 
-    assert_eq!(five_star_artifacts.current_rolls(), 0);
-    assert_eq!(five_star_artifacts.max_rolls(), 45);
-    assert_eq!(five_star_artifacts.rolls_left(), 45);
+        assert_eq!(five_star_artifacts.current_rolls(), 0);
+        assert_eq!(five_star_artifacts.max_rolls(), 45);
+        assert_eq!(five_star_artifacts.rolls_left(), 45);
 
-    let four_star_artifacts = ArtifactBuilder::new(
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::FlatHP,
-        }),
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::FlatATK,
-        }),
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::ATKPercent,
-        }),
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::PyroDMGBonus,
-        }),
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::CritRate,
-        }),
-    );
+        let four_star_artifacts = ArtifactBuilder::new(
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::FlatHP,
+            }),
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::FlatATK,
+            }),
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::ATKPercent,
+            }),
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::PyroDMGBonus,
+            }),
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::CritRate,
+            }),
+        );
 
-    assert_eq!(four_star_artifacts.current_rolls(), 0);
-    assert_eq!(four_star_artifacts.max_rolls(), 35);
+        assert_eq!(four_star_artifacts.current_rolls(), 0);
+        assert_eq!(four_star_artifacts.max_rolls(), 35);
 
-    let mixed_star_artifacts = ArtifactBuilder::new(
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::FlatHP,
-        }),
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::FlatATK,
-        }),
-        Some(ArtifactPiece {
-            rarity: 5,
-            level: 20,
-            stat_type: Stat::EnergyRecharge,
-        }),
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::ElementalMastery,
-        }),
-        Some(ArtifactPiece {
-            rarity: 4,
-            level: 16,
-            stat_type: Stat::CritRate,
-        }),
-    );
+        let mixed_star_artifacts = ArtifactBuilder::new(
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::FlatHP,
+            }),
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::FlatATK,
+            }),
+            Some(ArtifactPiece {
+                rarity: 5,
+                level: 20,
+                stat_type: Stat::EnergyRecharge,
+            }),
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::ElementalMastery,
+            }),
+            Some(ArtifactPiece {
+                rarity: 4,
+                level: 16,
+                stat_type: Stat::CritRate,
+            }),
+        );
 
-    assert_eq!(mixed_star_artifacts.current_rolls(), 0);
-    assert_eq!(mixed_star_artifacts.max_rolls(), 37);
-}
+        assert_eq!(mixed_star_artifacts.current_rolls(), 0);
+        assert_eq!(mixed_star_artifacts.max_rolls(), 37);
+    }
+
+    #[test] fn main_stats_are_correct() {
+        let bob = ArtifactBuilder::new(
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatHP}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatATK}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::EnergyRecharge}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::ATKPercent}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::ATKPercent})
+        );
+
+        
+        let expected = StatTable::of(&[
+            (Stat::FlatHP, 4780.0),
+            (Stat::FlatATK, 311.0),
+            (Stat::EnergyRecharge,0.518),
+            (Stat::ATKPercent, 0.466),
+            (Stat::ATKPercent, 0.466),
+        ]); 
+        let actual = bob.main_stats();
+
+        assert_eq!(expected, actual);
+    }
 
 }
