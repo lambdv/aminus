@@ -3,6 +3,7 @@ use crate::model::stattable::StatTable;
 use crate::model::statable::Statable;
 use crate::stat::Stat;
 use crate::statable::ModifiableStatable;
+use crate::model::artifact::*;
 
 /// Builder pattern for making artifact stattables
 pub struct ArtifactBuilder{
@@ -17,13 +18,11 @@ pub struct ArtifactBuilder{
 }
 
 impl ArtifactBuilder{
-
-
     //constructors
-    /// TOOD: verifiy stat_type for piece type
 
     /// constructs a new default artifact builder
     pub fn new(flower: Option<ArtifactPiece>, feather: Option<ArtifactPiece>, sands: Option<ArtifactPiece>, goblet: Option<ArtifactPiece>, circlet: Option<ArtifactPiece>,) -> Self {
+        //KEEP THIS FOR NOW
         // let constraints =std::collections::HashMap::from_iter(
         //     POSSIBLE_SUB_STATS.iter()
         //         .map(|x| (x.clone(), ([&flower, &feather, &sands, &goblet, &circlet].iter()
@@ -35,19 +34,26 @@ impl ArtifactBuilder{
         //         ))
         // );
 
+        assert!(flower.as_ref().map(|x| x.stat_type == Stat::FlatHP).unwrap_or(true));
+        assert!(feather.as_ref().map(|x| x.stat_type == Stat::FlatATK).unwrap_or(true));
+        assert!(sands.as_ref().map(|x| POSSIBLE_SANDS_STATS.contains(&x.stat_type)).unwrap_or(true));
+        assert!(goblet.as_ref().map(|x| POSSIBLE_GOBLET_STATS.contains(&x.stat_type)).unwrap_or(true));
+        assert!(circlet.as_ref().map(|x| POSSIBLE_CIRCLE_STATS.contains(&x.stat_type)).unwrap_or(true));
+
         let mut constraints = std::collections::HashMap::new();
         for stat in POSSIBLE_SUB_STATS {
-            let mut add_constraint = |x: (Stat, i8)| {
-                if let Some(count) = constraints.get_mut(&x) {
-                    *count += max_rolls_for_given(&piece, &stat, false);
-                } else {
-                    constraints.insert(x, max_rolls_for_given(&piece, &stat, false));
-                }
-            };
+
+            
             for piece in [flower.as_ref(), feather.as_ref(), sands.as_ref(), goblet.as_ref(), circlet.as_ref()] {
                 if let Some(piece) = piece {
                     if piece.stat_type != *stat {
-                        add_constraint((*stat, piece.rarity));
+                        //update constraints
+                        let x = (stat.clone(), piece.rarity);
+                        if let Some(count) = constraints.get_mut(&x) {
+                            *count += max_rolls_for_given(&piece, &stat, false);
+                        } else {
+                            constraints.insert((stat.clone(), piece.rarity), max_rolls_for_given(&piece, &stat, false));
+                        }
                     }
                 }
             }
@@ -100,7 +106,8 @@ impl ArtifactBuilder{
             rolls: std::collections::HashMap::new(),
             constraints: constraints
         };
-        POSSIBLE_SUB_STATS.iter().for_each(|x| bob.roll(*x, RollQuality::AVG, 2));
+        POSSIBLE_SUB_STATS.iter().for_each(|x| 
+            bob.roll(*x, RollQuality::AVG, 5, 2));
         bob
     }
 
@@ -122,9 +129,9 @@ impl ArtifactBuilder{
     pub fn sub_stats(&self)  -> StatTable{
         let mut res = StatTable::new();
 
-        self.rolls.iter().for_each(|((stat, quality), num_rolls)| {
+        // self.rolls.iter().for_each(|((stat, quality), num_rolls)| {
 
-        });
+        // });
 
         res
     }
@@ -143,11 +150,11 @@ impl ArtifactBuilder{
 
 
     //update methods
-    pub fn roll(&mut self, substat_value: Stat, quality: RollQuality, num: i8) {
-        assert!(valid_substat_type(&substat_value));
-        assert!(num <= self.substat_constraint(&substat_value));
+    pub fn roll(&mut self, substat_value: Stat, quality: RollQuality, rarity: i8, num: i8) {
+        assert!(is_valid_substat_type(&substat_value));
+        assert!(num <= self.substat_constraint(&substat_value, rarity));
 
-        self.rolls.entry((substat_value.clone(), quality.clone()))
+        self.rolls.entry((substat_value.clone(), quality.clone(), rarity))
             .and_modify(|v| *v+=num)
             .or_insert(num);
     }
@@ -197,7 +204,6 @@ impl ArtifactBuilder{
 
 
 ///specifies an artifact
-
 #[derive(Clone, Debug)]
 pub struct ArtifactPiece {
     pub rarity: i8,
@@ -207,7 +213,6 @@ pub struct ArtifactPiece {
 
 
 //type ArtifactPiece = (f32, f32, Stat);
-
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum RollQuality{
     MAX,
@@ -241,17 +246,15 @@ pub fn max_rolls_for(artifact: &ArtifactPiece, worse_case: bool) -> i8 {
 
 /// max number of rolls possible given a substat on an artifact
 pub fn max_rolls_for_given(artifact: &ArtifactPiece, substat_type: &Stat, worse_case: bool) -> i8 {
-    if artifact.stat_type == *substat_type {
-        return 0;    
-    }
+    if artifact.stat_type == *substat_type { return 0; }
     let upgrades = artifact.level / 4;
-    let max_rolls = if worse_case {upgrades} else {upgrades+1};
+    let max_rolls = if worse_case {upgrades} else {upgrades + 1};
     max_rolls
 }
 
-// pub fn max_rolls_for_given_stat(artifact: &ArtifactPiece, substat_type: &Stat, worse_case: bool) -> i8 {
-//     max_rolls_for(artifact,worse_case) - if substat_type == artifact.stat_type {}
-// }
+pub fn max_rolls_for_given_stat(artifact: &ArtifactPiece, substat_type: &Stat, worse_case: bool) -> i8 {
+    max_rolls_for(artifact,worse_case) - if substat_type == &artifact.stat_type {1} else {0}
+}
 
 /// list of possible stats substats can be 
 const POSSIBLE_SUB_STATS: &[Stat] = &[
@@ -265,10 +268,9 @@ const POSSIBLE_SUB_STATS: &[Stat] = &[
     Stat::CritRate,
     Stat::CritDMG,
     Stat::EnergyRecharge,
-
 ];
 
-pub fn valid_substat_type(stat_type: &Stat) -> bool {
+pub fn is_valid_substat_type(stat_type: &Stat) -> bool {
     POSSIBLE_SUB_STATS.contains(&stat_type)
 }
 
@@ -287,14 +289,14 @@ pub fn valid_substat_type(stat_type: &Stat) -> bool {
         //println!("{:?}", bob.constraints)
 
         //builder with no artifacts with main stat of type x has constraint of 30 
-        assert_eq!(bob.substat_constraint(&Stat::FlatDEF), 30);
-        assert_eq!(bob.substat_constraint(&Stat::CritDMG), 30);
-        assert_eq!(bob.substat_constraint(&Stat::CritRate), 30);
+        assert_eq!(bob.substat_constraint(&Stat::FlatDEF, 5), 30);
+        assert_eq!(bob.substat_constraint(&Stat::CritDMG, 5), 30);
+        assert_eq!(bob.substat_constraint(&Stat::CritRate, 5), 30);
         //builder with 1 artifacts with main stat of type x has constraint of 24 
-        assert_eq!(bob.substat_constraint(&Stat::EnergyRecharge), 24);
-        assert_eq!(bob.substat_constraint(&Stat::FlatATK), 24);
+        assert_eq!(bob.substat_constraint(&Stat::EnergyRecharge, 5), 24);
+        assert_eq!(bob.substat_constraint(&Stat::FlatATK, 5), 24);
         //builder with 2 artifacts with main stat of type x has constraint of 18 
-        assert_eq!(bob.substat_constraint(&Stat::ATKPercent), 18);
+        assert_eq!(bob.substat_constraint(&Stat::ATKPercent, 5), 18);
 
     }
 
@@ -309,14 +311,14 @@ pub fn valid_substat_type(stat_type: &Stat) -> bool {
         //println!("{:?}", bob.constraints);
 
         //builder with no artifacts with main stat of type x has constraint of 30 
-        assert_eq!(bob.substat_constraint(&Stat::FlatDEF), 10);
-        assert_eq!(bob.substat_constraint(&Stat::CritDMG), 10);
-        assert_eq!(bob.substat_constraint(&Stat::CritRate), 10);
+        assert_eq!(bob.substat_constraint(&Stat::FlatDEF, 5), 10);
+        assert_eq!(bob.substat_constraint(&Stat::CritDMG, 5), 10);
+        assert_eq!(bob.substat_constraint(&Stat::CritRate, 5), 10);
         //builder with 1 artifacts with main stat of type x has constraint of 24 
-        assert_eq!(bob.substat_constraint(&Stat::EnergyRecharge), (10-2));
-        assert_eq!(bob.substat_constraint(&Stat::FlatATK), 10-2);
+        assert_eq!(bob.substat_constraint(&Stat::EnergyRecharge, 5), (10-2));
+        assert_eq!(bob.substat_constraint(&Stat::FlatATK, 5), 10-2);
         //builder with 2 artifacts with main stat of type x has constraint of 18 
-        assert_eq!(bob.substat_constraint(&Stat::ATKPercent), 10-2-2);
+        assert_eq!(bob.substat_constraint(&Stat::ATKPercent, 5), 10-2-2);
         
     }
 
@@ -329,26 +331,24 @@ pub fn valid_substat_type(stat_type: &Stat) -> bool {
             Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::CritRate})
         );
         assert!(bob.rolls.len() == 0);
-        bob.roll(Stat::FlatATK, RollQuality::AVG, 1);
+        bob.roll(Stat::FlatATK, RollQuality::AVG, 5, 1);
         assert!(bob.rolls.len() == 1);
-        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::AVG)));
-        assert!(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG)).is_some());
-        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG)).unwrap()) == 1);
+        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::AVG, 5)));
+        assert!(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG, 5)).is_some());
+        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG, 5)).unwrap()) == 1);
 
-
-        bob.roll(Stat::FlatATK, RollQuality::AVG, 1);
+        bob.roll(Stat::FlatATK, RollQuality::AVG, 5, 1);
         assert!(bob.rolls.len() == 1);
-        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::AVG)));
-        assert!(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG)).is_some());
-        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG)).unwrap()) == 2);
+        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::AVG, 5)));
+        assert!(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG, 5)).is_some());
+        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG, 5)).unwrap()) == 2);
 
-
-        bob.roll(Stat::FlatATK, RollQuality::HIGH, 1);
+        bob.roll(Stat::FlatATK, RollQuality::HIGH, 5, 1);
         assert!(bob.rolls.len() == 2);
-        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::AVG)));
-        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG)).unwrap()) == 2);
-        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::HIGH)));
-        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::HIGH)).unwrap()) == 1);
+        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::AVG, 5)));
+        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::AVG, 5)).unwrap()) == 2);
+        assert!(bob.rolls.contains_key(&(Stat::FlatATK, RollQuality::HIGH, 5)));
+        assert!(*(bob.rolls.get(&(Stat::FlatATK, RollQuality::HIGH, 5)).unwrap()) == 1);
 
 
 
@@ -525,4 +525,13 @@ pub fn valid_substat_type(stat_type: &Stat) -> bool {
         assert_eq!(expected, actual);
     }
 
+    #[test] #[should_panic] fn invalid_main_stat_values_are_caught() {
+        let _bob = ArtifactBuilder::new(
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatHP}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatDEF}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::EnergyRecharge}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::EnergyRecharge}), //among us
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::ATKPercent})
+        );
+    }
 }
