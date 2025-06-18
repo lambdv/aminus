@@ -37,6 +37,15 @@ impl Rotation {
             .map(|x|x(stats))
             .sum()
     }
+
+    // compute and return sum of all actions based on a given statable instance
+    // pub fn execute_buffed(&self, stats: &StatTable, buffs: &StatTable) -> f32 {
+    //     let mut sum = stats.clone().chain(buffs);
+    //     self.inner.iter()
+    //         .map(|x| x.1)
+    //         .map(|x|x(stats.chain(buffs)))
+    //         .sum()
+    // }
 }
 
 

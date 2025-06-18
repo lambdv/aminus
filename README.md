@@ -1,5 +1,5 @@
 # aminus
-programmatic genshin calculation library
+genshin calculation library.
 
 ```rust
 let mut diluc = StatTable::of(&[

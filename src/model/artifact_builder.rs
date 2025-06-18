@@ -243,7 +243,7 @@ pub fn max_rolls_for_given_stat(artifact: &ArtifactPiece, substat_type: &Stat, w
 }
 
 /// list of possible stats substats can be 
-const POSSIBLE_SUB_STATS: &[Stat] = &[
+pub const POSSIBLE_SUB_STATS: &[Stat] = &[
     Stat::HPPercent,
     Stat::FlatHP,
     Stat::ATKPercent,

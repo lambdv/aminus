@@ -48,10 +48,6 @@ pub enum Stat {
     PhysicalResistanceReduction
 }
 
-
-
-
-
 pub enum Debuffs{
     DefReduction,
     DefIgnore,

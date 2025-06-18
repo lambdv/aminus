@@ -19,13 +19,23 @@ impl StatTable {
         }
         StatTable { inner: map }
     }
+
+    pub fn from_iter(
+        iter: StatableIter
+    ) -> StatTable {
+        let mut map = std::collections::HashMap::new();
+        for (k, v) in iter {
+            *map.entry(k).or_insert(0.0) += v;
+        }
+        StatTable { inner: map }
+    }
 }
 
 impl Statable for StatTable {
     fn get(&self, stat_type: &Stat) -> f32 {
         *self.inner.get(stat_type).unwrap_or(&0.0)
     }
-    fn iter(&self) -> Box<dyn Iterator<Item = (Stat, f32)> + '_> {
+    fn iter(&self) -> StatableIter {
         Box::new(self.inner.iter().map(|(k, v)| (*k, *v)))
     }
 }
