@@ -9,22 +9,6 @@ pub mod optimizers{
     use crate::model::statable::Statable;
     use crate::model::artifact_builder::*;
 
-    // pub enum OptimizationMethod {
-    //     Gradient, 
-    //     Greedy, 
-    // }
-
-
-    // pub fn kqmc_artifact_main_stat_optimizer(
-    //     //stats: Box<Statable>,
-    //     //target: Box<Computable>
-    //     stats: StatTable,
-    //     target: Rotation,
-    //     method: OptimizationMethod
-    // ) -> (Stat,Stat,Stat){
-    //     // heuristic: check which stats actually increase target value
-    //     (Stat::None,Stat::None,Stat::None)
-    // }
     
     /// finds best aritfact main stat combo for a statable given a computable
     /// eg: best mains for a character for a particular rotation
@@ -77,37 +61,86 @@ pub mod optimizers{
         slopes: &std::collections::HashMap<Stat, f32>,
     ) -> std::collections::HashMap<Stat, f32> {
         let mut graidents = std::collections::HashMap::new();
-        //let s = std::collections::HashMap::into_iter();
+
         for (stat, delta) in slopes {
-            let grad = StatTable::of(&[(*stat, *delta)]);
+            let direction = StatTable::of(&[(*stat, *delta)]);
             let mut adjusted = base.clone();
-            adjusted.add_table(Box::new(grad.iter()));
-            let slope = target.execute(&adjusted);
+            adjusted.add_table(Box::new(direction.iter()));
+
+            let before = target.execute(&base);
+            let after = target.execute(&adjusted);
+
+            let slope = (after - before) / *delta;
+
             graidents.insert(*stat, slope);
         }
+
         graidents
     }
 
+    
+    // pub enum Method {
+    //     Gradient, 
+    //     Greedy, 
+    // }
+
+
+    // pub fn kqmc_artifact_main_stat_optimizer(
+    //     //stats: Box<Statable>,
+    //     //target: Box<Computable>
+    //     stats: StatTable,
+    //     target: Rotation,
+    //     method: OptimizationMethod
+    // ) -> (Stat,Stat,Stat){
+    //     // heuristic: check which stats actually increase target value
+    //     (Stat::None,Stat::None,Stat::None)
+    // }
 
 #[cfg(test)] mod tests {
     use super::*;
-    use crate::{model::stat::Stat, stattable::StatTable};
+    use crate::dmg_function::*;
+    use crate::stat::*;
+
+    use crate::{
+        dmg_function::DMGFunction, model::stat::Stat, stattable::StatTable,
+    };
 
     #[test] fn test_gradients() {
-        let stats = StatTable::new();
+        let stats = StatTable::of(&[
+            (Stat::BaseATK, 100.0),
+            (Stat::ATKPercent, 0.5),
+            (Stat::FlatATK, 100.0),
+            (Stat::CritRate, 0.5),
+            (Stat::CritDMG, 0.5),
+            (Stat::ElementalMastery, 100.0),
+            (Stat::EnergyRecharge, 1.0),
+        ]);
+
         let target = Rotation::of(vec![
-            (String::from("test"), Box::new(|x| 0.1))
+            (String::from("test"), Box::new(|x| 
+                DMGFunction::calculate_damage(
+                    Element::Pyro, 
+                    DamageType::Normal, 
+                    BaseScaling::ATK, 
+                    Amplifier::None, 
+                    1.0, 
+                    1.0, 
+                    Box::new(x), 
+                    None,
+                )
+            ))
         ]);
 
         let grad: std::collections::HashMap<Stat, f32> = stat_gradients(
             &stats, 
                 &target,
         &std::collections::HashMap::from_iter(POSSIBLE_SUB_STATS.iter().map(|x|
-                        (*x, StatFactory::get_sub_stat_value(5, *x).unwrap())
+                        (*x, StatFactory::get_sub_stat_value(5, *x).unwrap_or_else(|e| panic!("invalid stat: {}", e)))
                     ))
         );
-
-        println!("{:?}", grad);
+        //println!("{:?}", grad);
+        assert!(grad.get(&Stat::FlatATK).unwrap() > &0.0);
+        assert!(grad.get(&Stat::ElementalMastery).unwrap() == &0.0);
     }
 }
 

@@ -4,6 +4,7 @@ use aminus::model::statable::*;
 use aminus::model::rotation::Rotation;
 // use aminus::formulas::formulas::*;
 use aminus::model::stat::*;
+use aminus::functions::dmg_function::*;
 
 
 #[test] fn primative_character_damage_calculation() {
@@ -47,19 +48,25 @@ use aminus::model::stat::*;
     let t= total_atk(&diluc);
     assert_aprx!(t, 1667.0, 10.0);
 
-    let skill_formula = Box::new(|s: &dyn Statable| calculate_damage(
-        Element::Pyro, 
-        DamageType::Skill, 
-        BaseScaling::ATK, 
-        Amplifier::None, 
-        1.0, 
-        1.0, 
-        s, 
-        None  
-    ));
+    let skill_formula = Box::new(|s: &dyn Statable| {
+        
+        let mut stat_table = StatTable::new();
+        stat_table.add_table(s.iter());
+
+        DMGFunction::calculate_damage(
+            Element::Pyro, 
+            DamageType::Skill, 
+            BaseScaling::ATK, 
+            Amplifier::None, 
+            1.0, 
+            1.0, 
+            Box::new(&stat_table), 
+            None  
+        )
+    });
     let multip = skill_formula(&diluc);
     assert_aprx!(multip, 1490.609, 0.1);
-
+    
 
     let r = Rotation::of(vec![
         (String::from("skill vape"), skill_formula),
