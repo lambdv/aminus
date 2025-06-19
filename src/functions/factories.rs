@@ -12,11 +12,11 @@ use crate::utils::percentage::*;
 use std::fmt;
 use std::error::Error;
 use anyhow::{Result, anyhow};
-use crate::irminsul_data_adaptor::*;
+use crate::data::irminsul_adaptor::*;
 
 /// factory for creating stattables
-pub struct StatTableFactory{}
-impl StatTableFactory{
+pub struct StatFactory{}
+impl StatFactory{
 
     /// opens a file name in project/data/filename
     fn get_data_file(filename: &str) -> Result<File, std::io::Error> {
@@ -25,9 +25,9 @@ impl StatTableFactory{
 
     /// reads file system to get character base stats of a given name as a stattable 
     pub fn get_character_base_stats(name: &str) -> Result<StatTable> {
-        let file: File = StatTableFactory::get_data_file("characters.json")?;
+        let file: File = StatFactory::get_data_file("characters.json")?;
         let list: CharacterList = serde_json::from_reader(BufReader::new(file))?;
-        let stat_list = StatTableFactory::find_match(list.data, name)?;
+        let stat_list = StatFactory::find_match(list.data, name)?;
         
         stat_list.base_stats.last()
             .map(|x| x.to_stattable())
@@ -35,9 +35,9 @@ impl StatTableFactory{
     }
 
     pub fn get_weapon_stats(name: &str) -> Result<StatTable> {
-        let file = StatTableFactory::get_data_file("weapons.json")?;
+        let file = StatFactory::get_data_file("weapons.json")?;
         let list: WeaponList = serde_json::from_reader(BufReader::new(file))?;
-        let stat_list: WeaponJSON = StatTableFactory::find_match(list.data, name)?;
+        let stat_list: WeaponJSON = StatFactory::find_match(list.data, name)?;
         
         stat_list.base_stats.last()
             .map(|x| x.to_stattable())
@@ -51,7 +51,7 @@ impl StatTableFactory{
             return Err(anyhow!("invalid level and rarity combo: level={level} rarity={rarity}"));
         }
 
-        let file: File = StatTableFactory::get_data_file("artifactMainStats.json")?;
+        let file: File = StatFactory::get_data_file("artifactMainStats.json")?;
         let mainstats: AllArtifactMainStatJson = serde_json::from_reader(BufReader::new(file))?;
 
         let rarity_pool = match rarity {
@@ -85,7 +85,7 @@ impl StatTableFactory{
     }
 
     pub fn get_sub_stat_value(rarity: i8, stat_type: Stat) -> Result<f32> {
-        let file: File = StatTableFactory::get_data_file("artifactSubStats.json")?;
+        let file: File = StatFactory::get_data_file("artifactSubStats.json")?;
         let json: AllArtifactSubStatJson = serde_json::from_reader(BufReader::new(file))?;
 
         let rarity_pool = match rarity {
@@ -138,7 +138,7 @@ impl StatTableFactory{
 
         // if matches.clone().count() == 0 {
         //     let matches = json_list.iter()
-        //         .filter(|c| StatTableFactory::fuzzy_match(name, c.name()));
+        //         .filter(|c| StatFactory::fuzzy_match(name, c.name()));
         // }
 
         match matches.clone().count() {
@@ -171,12 +171,12 @@ impl StatTableFactory{
     use super::*;
 
     #[test] fn get_data_file_works() {
-        let file = StatTableFactory::get_data_file("characters.json");
+        let file = StatFactory::get_data_file("characters.json");
         assert!(file.is_ok())
     }
 
     #[test] fn get_character_expected() {
-        let amber = StatTableFactory::get_character_base_stats("Amber");
+        let amber = StatFactory::get_character_base_stats("Amber");
         let amber = amber.unwrap();
         assert_eq!(amber.get(&Stat::BaseATK), 223.02);
         assert_eq!(amber.get(&Stat::BaseHP), 9461.18);
@@ -186,21 +186,21 @@ impl StatTableFactory{
 
 
     #[test] fn fuzzy_match_test() {
-        assert!(StatTableFactory::fuzzy_match("ayaka","Kamisato Ayaka"));
+        assert!(StatFactory::fuzzy_match("ayaka","Kamisato Ayaka"));
 
     }
 
     #[test] fn get_chara_fuzzy() {
-        let c1 = StatTableFactory::get_character_base_stats("Kamisato Ayaka");
+        let c1 = StatFactory::get_character_base_stats("Kamisato Ayaka");
         let c1 = c1.unwrap();
-        let c2 = StatTableFactory::get_character_base_stats("ayaka");
+        let c2 = StatFactory::get_character_base_stats("ayaka");
         let c2 = c2.unwrap();
 
         assert_eq!(c1, c2);
     }
 
     #[test] fn get_weapon_stats_works() {
-        let w = StatTableFactory::get_weapon_stats("A Thousand Blazing Suns");
+        let w = StatFactory::get_weapon_stats("A Thousand Blazing Suns");
         
         let w = w.unwrap();
         assert_eq!(w.get(&Stat::BaseATK), 741.0);
@@ -208,29 +208,29 @@ impl StatTableFactory{
     }
 
     #[test] fn test_get_mainstat_value() {
-        assert_eq!(StatTableFactory::get_main_stat_value(5, 20, &Stat::FlatATK).unwrap(), 311.0);
-        assert_eq!(StatTableFactory::get_main_stat_value(1, 0, &Stat::FlatATK).unwrap(), 8.0);
+        assert_eq!(StatFactory::get_main_stat_value(5, 20, &Stat::FlatATK).unwrap(), 311.0);
+        assert_eq!(StatFactory::get_main_stat_value(1, 0, &Stat::FlatATK).unwrap(), 8.0);
 
-        assert_eq!(StatTableFactory::get_main_stat_value(1, 0, &Stat::PyroDMGBonus).unwrap(), 0.031);
+        assert_eq!(StatFactory::get_main_stat_value(1, 0, &Stat::PyroDMGBonus).unwrap(), 0.031);
 
 
-        assert_eq!(StatTableFactory::get_main_stat_value(0, 0, &Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(-1, 0, &Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(6, 0, &Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(1, 5, &Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(5, 21, &Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(4, 17, &Stat::FlatATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_main_stat_value(5, 20, &Stat::BaseATK).is_err(), true);
+        assert_eq!(StatFactory::get_main_stat_value(0, 0, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatFactory::get_main_stat_value(-1, 0, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatFactory::get_main_stat_value(6, 0, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatFactory::get_main_stat_value(1, 5, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatFactory::get_main_stat_value(5, 21, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatFactory::get_main_stat_value(4, 17, &Stat::FlatATK).is_err(), true);
+        assert_eq!(StatFactory::get_main_stat_value(5, 20, &Stat::BaseATK).is_err(), true);
     }
 
     #[test] fn test_get_substat_value() {
-        assert_eq!(StatTableFactory::get_sub_stat_value(5, Stat::ATKPercent).unwrap(), 0.0583);
-        assert_eq!(StatTableFactory::get_sub_stat_value(5, Stat::CritRate).unwrap(), 0.0389);
-        assert_eq!(StatTableFactory::get_sub_stat_value(4, Stat::ATKPercent).unwrap(), 0.0466);
-        assert_eq!(StatTableFactory::get_sub_stat_value(1, Stat::ATKPercent).unwrap(), 0.0146);
+        assert_eq!(StatFactory::get_sub_stat_value(5, Stat::ATKPercent).unwrap(), 0.0583);
+        assert_eq!(StatFactory::get_sub_stat_value(5, Stat::CritRate).unwrap(), 0.0389);
+        assert_eq!(StatFactory::get_sub_stat_value(4, Stat::ATKPercent).unwrap(), 0.0466);
+        assert_eq!(StatFactory::get_sub_stat_value(1, Stat::ATKPercent).unwrap(), 0.0146);
 
-        assert_eq!(StatTableFactory::get_sub_stat_value(0, Stat::BaseATK).is_err(), true);
-        assert_eq!(StatTableFactory::get_sub_stat_value(5, Stat::PhysicalDMGBonus).is_err(), true);
+        assert_eq!(StatFactory::get_sub_stat_value(0, Stat::BaseATK).is_err(), true);
+        assert_eq!(StatFactory::get_sub_stat_value(5, Stat::PhysicalDMGBonus).is_err(), true);
     }
 
 }

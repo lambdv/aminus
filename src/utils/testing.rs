@@ -1,5 +1,5 @@
 /// module for testing functions
-pub mod testingutils{
+pub mod testing{
     /// assert a number according a persistion value
     #[macro_export] macro_rules! assert_aprx {
         ($left:expr, $right:expr, $epsilon:expr $(,)?) => {{

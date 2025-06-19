@@ -175,8 +175,8 @@ pub mod formulas{
     mod tests {
         use super::*;
         use crate::model::stattable::StatTable;
-        use crate::utils::testingutils::*;
-        use crate::utils::testingutils::*;
+        use crate::utils::testing::*;
+        use crate::utils::testing::*;
         #[test] fn atk_fomrula() {
             let base = 42.0;
             let flat = 100.0;

@@ -1,7 +1,7 @@
 /// module of functions that provide algorithms to optimize statables
 pub mod optimizers{
     use crate::computable::Computable;
-    use crate::factories::StatTableFactory;
+    use crate::factories::StatFactory;
     use crate::rotation::Rotation;
     use crate::{artifact::ArtifactSpec, stattable::*};
     use crate::stat::Stat;
@@ -39,7 +39,7 @@ pub mod optimizers{
         &stats, 
             &target,
     &std::collections::HashMap::from_iter(POSSIBLE_SUB_STATS.iter().map(|x|
-                    (*x, StatTableFactory::get_sub_stat_value(5, *x).unwrap())
+                    (*x, StatFactory::get_sub_stat_value(5, *x).unwrap())
                 ))
         );
 
@@ -103,7 +103,7 @@ pub mod optimizers{
             &stats, 
                 &target,
         &std::collections::HashMap::from_iter(POSSIBLE_SUB_STATS.iter().map(|x|
-                        (*x, StatTableFactory::get_sub_stat_value(5, *x).unwrap())
+                        (*x, StatFactory::get_sub_stat_value(5, *x).unwrap())
                     ))
         );
 
