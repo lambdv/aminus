@@ -9,7 +9,8 @@ pub mod optimizers{
     use crate::model::statable::Statable;
     use crate::model::artifact_builder::*;
 
-    
+    pub type VariableMainstatType = (Stat,Stat,Stat);
+
     /// finds best aritfact main stat combo for a statable given a computable
     /// eg: best mains for a character for a particular rotation
     pub fn global_kqmc_artifact_main_stat_optimizer(
@@ -17,7 +18,7 @@ pub mod optimizers{
         //target: Box<Computable>
         stats: StatTable,
         target: Rotation
-    ) -> (Stat,Stat,Stat){
+    ) -> VariableMainstatType{
         // heuristic: check which stats actually increase target value
         let effective_set: std::collections::HashMap<Stat, f32> = stat_gradients(
         &stats, 
@@ -26,8 +27,6 @@ pub mod optimizers{
                     (*x, StatFactory::get_sub_stat_value(5, *x).unwrap())
                 ))
         );
-
-
 
         //intersect set of valid stats for sands, goblet and circlet with set of effective stats
         let effective_sands: std::collections::HashMap<String, String>;
@@ -44,12 +43,17 @@ pub mod optimizers{
         best_combo
     }
 
+    pub type SubstatDistribution = std::collections::HashMap<Stat, i8>;
     /// finds best substat distrubtion 
     pub fn gradient_kqmc_artifact_substat_optimizer(
         stats: StatTable,
         target: Rotation 
-    ) -> std::collections::HashMap<Stat, i8> {
-        let best_substat_distrubtion: std::collections::HashMap<Stat, i8> = std::collections::HashMap::new();
+    ) -> SubstatDistribution {
+        let best_substat_distrubtion: SubstatDistribution = std::collections::HashMap::new();
+
+        // let bulder = ArtifactBuilder::kqmc(
+        //     Some
+        // );
 
         best_substat_distrubtion
     }
@@ -60,22 +64,16 @@ pub mod optimizers{
         target: &Rotation,
         slopes: &std::collections::HashMap<Stat, f32>,
     ) -> std::collections::HashMap<Stat, f32> {
-        let mut graidents = std::collections::HashMap::new();
-
+        let mut gradients = std::collections::HashMap::new();
         for (stat, delta) in slopes {
             let direction = StatTable::of(&[(*stat, *delta)]);
-            let mut adjusted = base.clone();
-            adjusted.add_table(Box::new(direction.iter()));
-
-            let before = target.execute(&base);
-            let after = target.execute(&adjusted);
-
+            let adjusted = base.chain(Box::new(direction));
+            let before = target.execute(base);
+            let after = target.execute(&StatTable::from_iter(adjusted.iter()));
             let slope = (after - before) / *delta;
-
-            graidents.insert(*stat, slope);
+            gradients.insert(*stat, slope);
         }
-
-        graidents
+        gradients
     }
 
     
