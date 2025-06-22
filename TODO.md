@@ -1,5 +1,4 @@
 - artifact type
-- artifact builder
 - optimization algorithms
 - executer service
 - formula engine

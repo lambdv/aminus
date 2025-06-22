@@ -1,0 +1,12 @@
+[package]
+name = "aminus-js"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+name = "aminus_js"
+
+[dependencies]
+aminus = { path = "../..", features = ["js-bindings"] }
+wasm-bindgen = "0.2.100"

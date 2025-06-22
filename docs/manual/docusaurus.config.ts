@@ -74,6 +74,14 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: 'https://wiki.hoyolab.com/_ipx/f_webp/https://bbs.hoyolab.com/hoyowiki/picture/character/%25E8%25BF%25AA%25E5%258D%25A2%25E5%2585%258B/battle_talent_1/battle_talent_1.png',
+    
+    // Force dark mode only
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: true,
+      respectPrefersColorScheme: false,
+    },
+    
     navbar: {
       title: 'Aminus',
       logo: {
