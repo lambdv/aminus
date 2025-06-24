@@ -1,7 +1,7 @@
 /// module of functions that provide algorithms to optimize statables
 pub mod optimizers{
-    use crate::computable::Computable;
-    use crate::factories::StatFactory;
+    use crate::model::operation::Operation;
+    use crate::functions::stat_factory::StatFactory;
     use crate::rotation::Rotation;
     use crate::{artifact::ArtifactSpec, stattable::*};
     use crate::stat::Stat;
@@ -68,8 +68,8 @@ pub mod optimizers{
         for (stat, delta) in slopes {
             let direction = StatTable::of(&[(*stat, *delta)]);
             let adjusted = base.chain(Box::new(direction));
-            let before = target.execute(base);
-            let after = target.execute(&StatTable::from_iter(adjusted.iter()));
+            let before = target.evaluate(base);
+            let after = target.evaluate(&StatTable::from_iter(adjusted.iter()));
             let slope = (after - before) / *delta;
             gradients.insert(*stat, slope);
         }

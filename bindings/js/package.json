@@ -1,0 +1,60 @@
+{
+  "name": "aminus-js",
+  "version": "0.1.0",
+  "description": "JavaScript/TypeScript bindings for the aminus Genshin Impact calculation library",
+  "type": "module",
+  "main": "./pkg/aminus_js.js",
+  "types": "./pkg/aminus_js.d.ts",
+  "files": [
+    "pkg/"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --target bundler --out-dir pkg",
+    "build:nodejs": "wasm-pack build --target nodejs --out-dir pkg",
+    "build:web": "wasm-pack build --target web --out-dir pkg",
+    "test": "npm run build:nodejs && jest",
+    "test:watch": "jest --watch",
+    "dev": "npm run build && npm test",
+    "generate-types": "wasm-pack build --target bundler --out-dir pkg",
+    "example": "npm run build:nodejs && node --loader ts-node/esm examples/basic-usage.ts"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "jest-environment-node": "^29.5.0",
+    "typescript": "^5.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0"
+  },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "extensionsToTreatAsEsm": [".ts"],
+    "testEnvironment": "node",
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
+    "testMatch": ["<rootDir>/tests/*.test.{ts,js}"],
+    "transform": {
+      "^.+\\.(ts|tsx)$": ["ts-jest", {
+        "useESM": true
+      }]
+    },
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "modulePathIgnorePatterns": ["<rootDir>/pkg/"]
+  },
+  "keywords": [
+    "genshin-impact",
+    "calculation",
+    "wasm",
+    "typescript",
+    "javascript"
+  ],
+  "author": "Lambdev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/aminus.git",
+    "directory": "bindings/js"
+  }
+} 

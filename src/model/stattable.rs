@@ -20,14 +20,8 @@ impl StatTable {
         StatTable { inner: map }
     }
 
-    pub fn from_iter(
-        iter: StatableIter
-    ) -> StatTable {
-        let mut map = std::collections::HashMap::new();
-        for (k, v) in iter {
-            *map.entry(k).or_insert(0.0) += v;
-        }
-        StatTable { inner: map }
+    pub fn from_iter(iter: StatableIter) -> StatTable {
+        Self::of(&iter.collect::<Vec<(Stat, f32)>>())
     }
 }
 

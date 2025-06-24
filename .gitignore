@@ -2,3 +2,7 @@
 /.vscode
 /sussy
 /docs/node_modules
+.DS_Store
+.github
+.vscode
+.cursor

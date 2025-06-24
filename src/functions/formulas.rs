@@ -34,7 +34,7 @@ pub mod formulas{
         1.0+(cr*cd)
     }
 
-    pub fn def_multiplier(character_level: i8, enemy_level: i8, def_reduction: f32, def_ignore: f32,) -> f32{
+    pub fn def_multiplier(character_level: i8, enemy_level: i8, def_reduction: f32, def_ignore: f32) -> f32{
         assert!(character_level >= 1);
         assert!(character_level <= 90);
         assert!(enemy_level >= 1);

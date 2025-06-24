@@ -1,10 +1,11 @@
-use crate::factories::*;
+use crate::functions::stat_factory::StatFactory;
 use crate::model::stattable::StatTable;
 use crate::model::statable::Statable;
 use crate::stat::Stat;
 use crate::statable::ModifiableStatable;
 use crate::model::artifact::*;
 use crate::assert_aprx;
+
 
 /// Builder pattern for making artifact stattables
 pub struct ArtifactBuilder{

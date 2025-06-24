@@ -1,12 +1,15 @@
 use crate::model::stat::Stat;
 use crate::model::stattable::StatTable;
 
+pub type StatValue = (Stat, f32);
+
 pub type StatableIter<'a> = Box<dyn Iterator<Item = (Stat, f32)> + 'a>;
 
 // Top level primative type that lets you get an f32 value mapped to a stat type enum
 pub trait Statable {
     ///gets all stats from a statable as an iter with stat-value pair tuples 
     fn iter(&self) -> StatableIter;
+
     ///return value mapped to stat_type if its stored, else returns 0
     fn get(&self, stat_type: &Stat) -> f32{
         self.iter()
@@ -14,6 +17,8 @@ pub trait Statable {
             .map(|x| x.1)
             .sum()
     }
+
+    /// turnary operator that sums 2 statables together and returns the results
     fn chain(&self, other: Box<dyn Statable>) -> Box<dyn Statable>{
         let mut res = StatTable::new();
         res.add_table(self.iter());

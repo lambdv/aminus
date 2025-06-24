@@ -1,5 +1,5 @@
 # aminus
-genshin calculation library.
+a genshin impact damage and stat calculation library.
 
 ```rust
 let mut diluc = StatTable::of(&[
@@ -36,7 +36,6 @@ let r = Rotation::of(vec![
 ]);
 let dps = r.execute(&diluc)/20.0;
 ```
-
 
 ## Installation
  1. **Clone The Repository**

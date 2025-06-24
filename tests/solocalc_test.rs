@@ -72,7 +72,7 @@ use aminus::functions::dmg_function::*;
         (String::from("skill vape"), skill_formula),
     ]);
 
-    let res = r.execute(&diluc);
+    let res = r.evaluate(&diluc);
     let expected = 1490.609;
     assert_aprx!(res, expected, 1.0);
 }

@@ -1,7 +1,10 @@
 use std::str::FromStr;
 use crate::utils::standardize::*;
+// pub enum Attribute{
+//     Stat(Stat),
+// }
 
-/// Stat type enumeration
+/// Represents a Attribute type
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, serde::Deserialize)]
 pub enum Stat {
     BaseHP, 
@@ -47,6 +50,14 @@ pub enum Stat {
     DendroResistanceReduction,
     PhysicalResistanceReduction
 }
+
+impl Stat {
+    pub fn with_value(&self, value: f32) -> StatValue {
+        (*self, value)
+    }
+}
+
+pub type StatValue = (Stat, f32);
 
 pub enum Debuffs{
     DefReduction,

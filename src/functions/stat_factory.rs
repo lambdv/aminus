@@ -2,26 +2,70 @@ use crate::{model::stattable::StatTable, standardize::flatten_str};
 use crate::model::statable::Statable;
 use crate::model::stat::Stat;
 use crate::model::statable::ModifiableStatable;
-use std::fs::File;
-use std::io::prelude::*;
 use std::str::FromStr;
 use serde::Deserialize;
 use serde::Serialize;
-use std::io::BufReader;
 use crate::utils::percentage::*;
 use std::fmt;
 use std::error::Error;
 use anyhow::{Result, anyhow};
 use crate::data::irminsul_adaptor::*;
+use once_cell::sync::Lazy;
+
+#[cfg(not(target_arch = "wasm32"))]
+use reqwest::Client;
 
 /// factory for creating stattables
 pub struct StatFactory{}
+
+// Compile-time cached data using include_str! macro
+static CHARACTER_DATA: Lazy<CharacterList> = Lazy::new(|| {
+    let json_str = include_str!("../../data/characters.json");
+    serde_json::from_str(json_str).expect("Failed to parse characters.json")
+});
+
+static WEAPON_DATA: Lazy<WeaponList> = Lazy::new(|| {
+    let json_str = include_str!("../../data/weapons.json");
+    serde_json::from_str(json_str).expect("Failed to parse weapons.json")
+});
+
+static ARTIFACT_MAIN_STAT_DATA: Lazy<AllArtifactMainStatJson> = Lazy::new(|| {
+    let json_str = include_str!("../../data/artifactMainStats.json");
+    serde_json::from_str(json_str).expect("Failed to parse artifactMainStats.json")
+});
+
+static ARTIFACT_SUB_STAT_DATA: Lazy<AllArtifactSubStatJson> = Lazy::new(|| {
+    let json_str = include_str!("../../data/artifactSubStats.json");
+    serde_json::from_str(json_str).expect("Failed to parse artifactSubStats.json")
+});
+
 impl StatFactory{
-    /// reads file system to get character base stats of a given name as a stattable 
+
+    /// reads cached character base stats of a given name as a stattable 
     pub fn get_character_base_stats(name: &str) -> Result<StatTable> {
-        let file: File = StatFactory::get_data_file("characters.json")?;
-        let list: CharacterList = serde_json::from_reader(BufReader::new(file))?;
-        let stat_list = StatFactory::find_match(list.data, name)?;
+        let stat_list = StatFactory::find_match(CHARACTER_DATA.data.clone(), name)?;
+        
+        stat_list.base_stats.last()
+            .map(|x| x.to_stattable())
+            .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
+    }
+
+    /// fetches character base stats from Irminsul API asynchronously
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn fetch_character_base_stats(name: &str) -> Result<StatTable> {
+        let client = Client::new();
+        let response = client
+            .get("https://www.irminsul.moe/api/characters")
+            .send()
+            .await
+            .map_err(|e| anyhow!("Failed to fetch characters from API: {}", e))?;
+        
+        let character_list: CharacterList = response
+            .json()
+            .await
+            .map_err(|e| anyhow!("Failed to parse characters JSON: {}", e))?;
+        
+        let stat_list = StatFactory::find_match(character_list.data, name)?;
         
         stat_list.base_stats.last()
             .map(|x| x.to_stattable())
@@ -29,9 +73,29 @@ impl StatFactory{
     }
 
     pub fn get_weapon_stats(name: &str) -> Result<StatTable> {
-        let file = StatFactory::get_data_file("weapons.json")?;
-        let list: WeaponList = serde_json::from_reader(BufReader::new(file))?;
-        let stat_list: WeaponJSON = StatFactory::find_match(list.data, name)?;
+        let stat_list: WeaponJSON = StatFactory::find_match(WEAPON_DATA.data.clone(), name)?;
+        
+        stat_list.base_stats.last()
+            .map(|x| x.to_stattable())
+            .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
+    }
+
+    /// fetches weapon stats from Irminsul API asynchronously
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn fetch_weapon_stats(name: &str) -> Result<StatTable> {
+        let client = Client::new();
+        let response = client
+            .get("https://www.irminsul.moe/api/weapons")
+            .send()
+            .await
+            .map_err(|e| anyhow!("Failed to fetch weapons from API: {}", e))?;
+        
+        let weapon_list: WeaponList = response
+            .json()
+            .await
+            .map_err(|e| anyhow!("Failed to parse weapons JSON: {}", e))?;
+        
+        let stat_list: WeaponJSON = StatFactory::find_match(weapon_list.data, name)?;
         
         stat_list.base_stats.last()
             .map(|x| x.to_stattable())
@@ -43,15 +107,12 @@ impl StatFactory{
             return Err(anyhow!("invalid level and rarity combo: level={level} rarity={rarity}"));
         }
 
-        let file: File = StatFactory::get_data_file("artifactMainStats.json")?;
-        let mainstats: AllArtifactMainStatJson = serde_json::from_reader(BufReader::new(file))?;
-
         let rarity_pool = match rarity {
-            5 => mainstats.five_star,
-            4 => mainstats.four_star,
-            3 => mainstats.three_star,
-            2 => mainstats.two_star,
-            1 => mainstats.one_star,
+            5 => &ARTIFACT_MAIN_STAT_DATA.five_star,
+            4 => &ARTIFACT_MAIN_STAT_DATA.four_star,
+            3 => &ARTIFACT_MAIN_STAT_DATA.three_star,
+            2 => &ARTIFACT_MAIN_STAT_DATA.two_star,
+            1 => &ARTIFACT_MAIN_STAT_DATA.one_star,
             _ => Err(anyhow!("invalid rarity value: {}", rarity))?
         };
 
@@ -77,15 +138,12 @@ impl StatFactory{
     }
 
     pub fn get_sub_stat_value(rarity: i8, stat_type: Stat) -> Result<f32> {
-        let file: File = StatFactory::get_data_file("artifactSubStats.json")?;
-        let json: AllArtifactSubStatJson = serde_json::from_reader(BufReader::new(file))?;
-
         let rarity_pool = match rarity {
-            5 => json.five_star,
-            4 => json.four_star,
-            3 => json.three_star,
-            2 => json.two_star,
-            1 => json.one_star,
+            5 => &ARTIFACT_SUB_STAT_DATA.five_star,
+            4 => &ARTIFACT_SUB_STAT_DATA.four_star,
+            3 => &ARTIFACT_SUB_STAT_DATA.three_star,
+            2 => &ARTIFACT_SUB_STAT_DATA.two_star,
+            1 => &ARTIFACT_SUB_STAT_DATA.one_star,
             _ => Err(anyhow!("invalid rarity value: {}", rarity))?
         };
 
@@ -120,7 +178,6 @@ impl StatFactory{
         }
     }
 
-
     fn find_match<T: NamedJSON>(json_list: Vec<T>, name: &str) -> Result<T> {
         let matches = json_list.iter()
             .filter(|c| 
@@ -128,11 +185,10 @@ impl StatFactory{
                 || Self::fuzzy_match(name, c.name()
             ));
 
-        //check for exact match in matches
-        let exact_match = matches.clone().find(|c| flatten_str(c.name()) == flatten_str(name));
-        if let Some(exact_match) = exact_match {
-            return Ok(exact_match.clone());
-        }
+        // if matches.clone().count() == 0 {
+        //     let matches = json_list.iter()
+        //         .filter(|c| StatFactory::fuzzy_match(name, c.name()));
+        // }
 
         match matches.clone().count() {
             1 => Ok(matches.reduce(|x: &T, y: &T| x).unwrap().clone()),
@@ -141,7 +197,7 @@ impl StatFactory{
         }
     }
 
-    fn fuzzy_match(needled: &str, haystack: &str) -> bool {
+    pub fn fuzzy_match(needled: &str, haystack: &str) -> bool {
         let needle = flatten_str(needled);
         let haystack = flatten_str(haystack);
         let mut nidx = 0;
@@ -155,21 +211,11 @@ impl StatFactory{
         }
         false
     }
-
-    /// opens a file name in project/data/filename
-    fn get_data_file(filename: &str) -> Result<File, std::io::Error> {
-        File::open(format!("{}/data/{}", env!("CARGO_MANIFEST_DIR"), filename))
-    }
 }
 
 
 #[cfg(test)] mod tests {
     use super::*;
-
-    #[test] fn get_data_file_works() {
-        let file = StatFactory::get_data_file("characters.json");
-        assert!(file.is_ok())
-    }
 
     #[test] fn get_character_expected() {
         let amber = StatFactory::get_character_base_stats("Amber");
@@ -180,10 +226,8 @@ impl StatFactory{
         assert_eq!(amber.get(&Stat::ATKPercent), 0.240);
     }
 
-
     #[test] fn fuzzy_match_test() {
         assert!(StatFactory::fuzzy_match("ayaka","Kamisato Ayaka"));
-
     }
 
     #[test] fn get_chara_fuzzy() {
@@ -209,7 +253,6 @@ impl StatFactory{
 
         assert_eq!(StatFactory::get_main_stat_value(1, 0, &Stat::PyroDMGBonus).unwrap(), 0.031);
 
-
         assert_eq!(StatFactory::get_main_stat_value(0, 0, &Stat::FlatATK).is_err(), true);
         assert_eq!(StatFactory::get_main_stat_value(-1, 0, &Stat::FlatATK).is_err(), true);
         assert_eq!(StatFactory::get_main_stat_value(6, 0, &Stat::FlatATK).is_err(), true);
@@ -229,4 +272,48 @@ impl StatFactory{
         assert_eq!(StatFactory::get_sub_stat_value(5, Stat::PhysicalDMGBonus).is_err(), true);
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    #[tokio::test]
+    async fn test_fetch_character_base_stats() {
+        let amber = StatFactory::fetch_character_base_stats("Amber").await;
+        let amber = amber.unwrap();
+        assert_eq!(amber.get(&Stat::BaseATK), 223.02);
+        assert_eq!(amber.get(&Stat::BaseHP), 9461.18);
+        assert_eq!(amber.get(&Stat::BaseDEF), 600.62);
+        assert_eq!(amber.get(&Stat::ATKPercent), 0.240);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[tokio::test]
+    async fn test_fetch_character_fuzzy() {
+        let c1 = StatFactory::fetch_character_base_stats("Kamisato Ayaka").await;
+        let c1 = c1.unwrap();
+        let c2 = StatFactory::fetch_character_base_stats("ayaka").await;
+        let c2 = c2.unwrap();
+
+        assert_eq!(c1, c2);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[tokio::test]
+    async fn test_fetch_weapon_stats() {
+        let w = StatFactory::fetch_weapon_stats("A Thousand Blazing Suns").await;
+        let w = w.unwrap();
+        assert_eq!(w.get(&Stat::BaseATK), 741.0);
+        assert_eq!(w.get(&Stat::CritRate), 0.11);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[tokio::test]
+    async fn test_fetch_character_not_found() {
+        let result = StatFactory::fetch_character_base_stats("NonExistentCharacter").await;
+        assert!(result.is_err());
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[tokio::test]
+    async fn test_fetch_weapon_not_found() {
+        let result = StatFactory::fetch_weapon_stats("NonExistentWeapon").await;
+        assert!(result.is_err());
+    }
 }

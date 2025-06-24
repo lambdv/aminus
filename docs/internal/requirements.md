@@ -1,14 +1,10 @@
-# High Level Requirements
-
-# Low-level requirements
-
 # Functional Requirements
+- calculate damage output numbers with an accuracy of +or- 10 compared to in-game results with the same assumptions
+- can calculate teamdps estimates equal to genshin damage spreadsheets
+- can solve/optimize substat distrubtions based on KQMC (KQM Calculation Standard): https://compendium.keqingmains.com/
+
 
 # Non Functional Requirements
- - software is not malware
- - runtime computation is faster than 2s and takes less than 50mb of memory
- - software can run on windows, macos and linux
- - software can run on PCs 
- - software can run on serverless function
- - software does not create new vulnerabilities on systems that run it
- - library can be used in the rust, javascript and python programming languages
+
+# Low Level Requirements
+
