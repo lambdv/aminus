@@ -48,3 +48,4 @@ cargo build
 - **Damage Calculation**: Precise damage calculations for all character abilities
 - **Artifact Optimization**: Find the best artifact combinations for your characters
 - **Multi-language Support**: Available in Rust, Java, and JavaScript bindings
+# Trigger deployment
