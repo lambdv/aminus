@@ -1,41 +1,65 @@
-# Website
+# Aminus Documentation
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
-
-## Installation
-
-```bash
-yarn
-```
+This directory contains the Docusaurus documentation for the Aminus project.
 
 ## Local Development
 
-```bash
-yarn start
-```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
+To run the documentation site locally:
 
 ```bash
-yarn build
-```
+# Install dependencies
+npm install
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+# Start the development server
+npm start
+
+# Build for production
+npm run build
+
+# Serve the production build locally
+npm run serve
+```
 
 ## Deployment
 
-Using SSH:
+The documentation is automatically deployed to GitHub Pages when changes are pushed to the `main` branch. The deployment is handled by the GitHub Actions workflow in `.github/workflows/deploy-docs.yml`.
 
-```bash
-USE_SSH=true yarn deploy
-```
+### Deployment Process
 
-Not using SSH:
+1. When you push changes to the `main` branch, the GitHub Actions workflow automatically:
+   - Sets up Node.js environment
+   - Installs dependencies
+   - Builds the Docusaurus site
+   - Deploys to GitHub Pages
 
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
+2. The site will be available at: https://lambdv.github.io/aminus/
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+### Manual Deployment
+
+If you need to deploy manually:
+
+1. Build the site: `npm run build`
+2. The built files will be in the `build/` directory
+3. You can then deploy these files to any static hosting service
+
+## Configuration
+
+The main configuration file is `docusaurus.config.ts`. Key settings:
+
+- **URL**: https://lambdv.github.io
+- **Base URL**: /aminus/
+- **Organization**: lambdv
+- **Project**: aminus
+
+## Adding Content
+
+- **Documentation**: Add markdown files to the `docs/` directory
+- **Blog Posts**: Add markdown files to the `blog/` directory
+- **Pages**: Add React components to the `src/pages/` directory
+- **Components**: Add React components to the `src/components/` directory
+
+## Customization
+
+- **Styling**: Modify `src/css/custom.css`
+- **Theme**: Update the `themeConfig` in `docusaurus.config.ts`
+- **Sidebar**: Edit `sidebars.ts` to configure the documentation navigation
