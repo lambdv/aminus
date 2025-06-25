@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Introduction
 
-Aminus is a gesnhin impact calculation library. 
+Aminus is a Genshin Impact calculation library. 
 
 ```rust
 import com.github.lambdv.ParametricTransformer.core.*;
@@ -28,13 +28,12 @@ ayaka.optimize(Optimizers.KQMSArtifactOptimizer(ayakaRotation, 1.30));
 var dps = ayakaRotation.compute(ayaka)/21;
 ```
 
-
 ## Installation
  1. **Clone The Repository**
    ```bash
    git clone https://github.com/lambdv/aminus.git 
    ```
- 2. **Navagate into the directory**
+ 2. **Navigate into the directory**
   ```bash
   cd aminus
   ```
@@ -43,3 +42,9 @@ var dps = ayakaRotation.compute(ayaka)/21;
 cargo build
 ```
 
+## Features
+
+- **Character Optimization**: Automatically optimize character builds for maximum damage
+- **Damage Calculation**: Precise damage calculations for all character abilities
+- **Artifact Optimization**: Find the best artifact combinations for your characters
+- **Multi-language Support**: Available in Rust, Java, and JavaScript bindings
