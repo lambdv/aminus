@@ -6,7 +6,6 @@ use crate::statable::ModifiableStatable;
 use crate::model::artifact::*;
 use crate::assert_aprx;
 
-
 /// Builder pattern for making artifact stattables
 pub struct ArtifactBuilder{
     // artifact pieces
@@ -53,7 +52,7 @@ impl ArtifactBuilder{
     /// 20 fluid subs to distribute, max 2 rolls for each artifact piece with a main stat that is of a different stat from it
     /// 4-star artifacts have a x0.8 substat value modifer compared to 5-stars and penalty of -2 distributed substats per 4-star artifact
     /// 1 5-star and 4 4-star means the 5 star artifact will have a stat modifer of (1 * 1 + 0.8 * 4) / 5 = 0.84x rather than 1 
-    pub fn kqm(flower: Option<ArtifactPiece>, feather: Option<ArtifactPiece>, sands: Option<ArtifactPiece>, goblet: Option<ArtifactPiece>, circlet: Option<ArtifactPiece>) -> Self {
+    pub fn kqmc(flower: Option<ArtifactPiece>, feather: Option<ArtifactPiece>, sands: Option<ArtifactPiece>, goblet: Option<ArtifactPiece>, circlet: Option<ArtifactPiece>) -> Self {
         //invariant checks
         assert!(flower.as_ref().map(|x| x.stat_type == Stat::FlatHP).unwrap_or(true));
         assert!(feather.as_ref().map(|x| x.stat_type == Stat::FlatATK).unwrap_or(true));
@@ -98,7 +97,6 @@ impl ArtifactBuilder{
             .map(|x| max_rolls_for(&x, false))
             .fold(0, |x,y| x+y) as i8;
 
-        println!("base: {}", base);
 
         let penalty = [&flower, &feather, &sands, &goblet, &circlet].iter()
             .filter_map(|piece| piece.as_ref())
@@ -115,6 +113,9 @@ impl ArtifactBuilder{
         POSSIBLE_SUB_STATS.iter()
             .for_each(|&stat| {
                 bob.roll(stat, RollQuality::AVG, roll_rarity, 2);
+                //increase constraint for each stat by 2
+                let old_constraint = bob.constraints.get(&(stat, roll_rarity)).unwrap_or(&0);
+                bob.constraints.insert((stat, roll_rarity), old_constraint + 2);
             });
         bob
     }
@@ -122,7 +123,7 @@ impl ArtifactBuilder{
 
     /// constructs artifact builder for kqmc assumptions with all 5 star artifacts
     pub fn kqm_all_5_star(sands_main: Stat, goblet_main: Stat, circlet_main: Stat) -> Self {
-       ArtifactBuilder::kqm(
+       ArtifactBuilder::kqmc(
         Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatHP}),
         Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatATK}),
         Some(ArtifactPiece{rarity:5, level:20, stat_type: sands_main}),
@@ -133,7 +134,7 @@ impl ArtifactBuilder{
 
     /// constructs artifact builder for kqmc assumptions with all 4 star artifacts
     pub fn kqm_all_4_star(sands_main: Stat, goblet_main: Stat, circlet_main: Stat) -> Self {
-        let mut bob = ArtifactBuilder::kqm(
+        let mut bob = ArtifactBuilder::kqmc(
             Some(ArtifactPiece{rarity:4, level:16, stat_type: Stat::FlatHP}),
             Some(ArtifactPiece{rarity:4, level:16, stat_type: Stat::FlatATK}),
             Some(ArtifactPiece{rarity:4, level:16, stat_type: sands_main}),
@@ -165,7 +166,7 @@ impl ArtifactBuilder{
             _ => panic!("Invalid five star index"),
         };
 
-        let mut bob = ArtifactBuilder::kqm(
+        let mut bob = ArtifactBuilder::kqmc(
             Some(ArtifactPiece{rarity:4, level:16, stat_type: Stat::FlatHP}),
             Some(ArtifactPiece{rarity:4, level:16, stat_type: Stat::FlatATK}),
             Some(sands_piece),
@@ -226,7 +227,7 @@ impl ArtifactBuilder{
     /// rolls a substat
     pub fn roll(&mut self, substat_value: Stat, quality: RollQuality, rarity: i8, num: i8) {
         assert!(is_valid_substat_type(&substat_value));
-        assert!(num <= self.substat_constraint(&substat_value, rarity));
+        assert!(self.current_rolls_for_given(&substat_value, quality.clone(), rarity.clone()) + num <= self.substat_constraint(&substat_value, rarity));
 
         self.rolls.entry((substat_value.clone(), quality.clone(), rarity))
             .and_modify(|v| *v+=num)

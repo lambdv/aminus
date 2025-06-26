@@ -3,6 +3,7 @@ use crate::model::stat::Stat;
 use crate::model::stattable::StatTable;
 use crate::model::statable::*;
 use crate::model::statable::ModifiableStatable;
+use std::collections::HashSet;
 
 pub struct ArtifactSpec {
     pub rarity: i8,
@@ -109,7 +110,6 @@ pub const POSSIBLE_CIRCLE_STATS: &[Stat] = &[
     Stat::CritDMG,
     Stat::HealingBonus,
 ];
-
 
 #[cfg(test)] mod tests {
     use super::*;
