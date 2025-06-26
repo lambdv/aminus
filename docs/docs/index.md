@@ -4,19 +4,22 @@ sidebar_position: 1
 
 # Introduction
 
-Aminus is a Genshin Impact calculation library. 
+Aminus is a genshin impact damage and stat calculation library and framework.
+
 
 ```rust
 import com.github.lambdv.ParametricTransformer.core.*;
+
 var ayaka = Characters.of("ayaka")
-.equip(Weapons.of("mistsplitter"))
-.add(StatTable.of(
-    Stat.ATKPercent, 0.20 + 0.20 + 0.48,
-    Stat.CritRate, 0.4 + 0.15,
-    Stat.ElementalDMGBonus, 0.15 + 0.12 + 0.28 + 0.18 + (0.0004*800),
-    Stat.NormalATKDMGBonus, 0.3,
-    Stat.ChargeATKDMGBonus, 0.3,
-    Stat.CryoResistanceReduction, 0.4));
+    .equip(Weapons.of("mistsplitter"))
+    .add(StatTable.of(
+        Stat.ATKPercent, 0.88,
+        Stat.CritRate, 0.55,
+        Stat.ElementalDMGBonus, 0.73,
+        Stat.NormalATKDMGBonus, 0.3,
+        Stat.ChargeATKDMGBonus, 0.3,
+        Stat.CryoResistanceReduction, 0.4));
+
 var ayakaRotation = new Rotation()
     .add("n1", DamageFormulas.defaultCryoNormalATK(3.0, 0.84))
     .add("n2", DamageFormulas.defaultCryoNormalATK(2.0, 0.894))
@@ -24,9 +27,61 @@ var ayakaRotation = new Rotation()
     .add("skill", DamageFormulas.defaultCryoSkillATK(2.0, 4.07))
     .add("burstcutts", DamageFormulas.defaultCryoBurstATK(19.0, 1.91))
     .add("burstexplosion", DamageFormulas.defaultCryoBurstATK(1.0, 2.86));
+
 ayaka.optimize(Optimizers.KQMSArtifactOptimizer(ayakaRotation, 1.30));
-var dps = ayakaRotation.compute(ayaka)/21;
+var dps = ayakaRotation.compute(ayaka) / 21;
 ```
+
+
+## Why use Aminus
+ Aminus is a **programmatic** alternative to using spread-sheets for genshin impact metagaming and theorycrafting use cases. 
+
+ You can use Aminus for any use-case where you want to model stats or calculate damage. Such as for doing teamdps calculations, gearing/upgrade (eg: weapon, artifact, constelation, talents) comparison, estimating energy-recharge requirements ect.
+
+## Front End
+ Aminus provides a set of **primatives** and **abstractions** for damage-stat calculation.
+
+ ![UML](./img/UML.png)
+
+ ### Primatives
+  **Attribute:**  
+  enum that represents a stat type. 
+  
+  eg: FlatATK, ATK%, Crit-Rate, Dmg%
+
+  **StatValue:**  
+  a pair between an attribute and a given value
+  
+  eg: (CritRate, 60%)
+
+  some entity (character, weapon artifact) may have crit rate as a stat attribute but a StatValue specifies *how much* of a attribute it has.
+
+ **StatTable:**
+ a collection/data structure of multiple stat to value mappings.
+ 
+ eg: ((ATK%, 20%), (CritRate, 60%), (CritDMG, 120%))
+ 
+ this can be used to model any in-game "stat table", from the representation of a character's total stats to total amount of stats given from a weapon or artifact piece
+
+
+**Operation**
+
+a computation that takes StatTable(s) and computes it to resulting StatTable or number
+
+ops can unary: (StatTable)->StatTable, turnary: (StatTable,StatTable)->StatTable
+
+most common use for operations is to apply some formula to a stattable to compute damage. or to merge 2 stat tables without mutation
+
+**Rotation**
+
+specififes a sequence of actions (normal attack, skill, burst) a character performs to deal damage.
+
+a rotation is just a collection of (StatTable)->number operations where the StatTable represents a character's total stats used for this action while then number is the damage output of the action.
+
+
+
+
+
 
 ## Installation
  1. **Clone The Repository**
@@ -38,14 +93,6 @@ var dps = ayakaRotation.compute(ayaka)/21;
   cd aminus
   ```
  3. **Install Dependencies**
-```
-cargo build
-```
-
-## Features
-
-- **Character Optimization**: Automatically optimize character builds for maximum damage
-- **Damage Calculation**: Precise damage calculations for all character abilities
-- **Artifact Optimization**: Find the best artifact combinations for your characters
-- **Multi-language Support**: Available in Rust, Java, and JavaScript bindings
-# Trigger deployment
+   ```bash
+   cargo build
+   ```
