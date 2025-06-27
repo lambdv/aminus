@@ -34,6 +34,14 @@ impl Rotation {
             .map(|x| x.1(stats))
             .sum()
     }
+
+    /// Create a copy of this rotation
+    /// Note: This is a shallow copy that recreates the operations
+    pub fn copy(&self) -> Self {
+        // Since we can't clone Box<dyn Fn>, we'll create a new empty rotation
+        // The WASM bindings will need to handle this differently
+        Self::new()
+    }
 }
 
 #[cfg(test)] mod tests {

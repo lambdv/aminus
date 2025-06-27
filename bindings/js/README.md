@@ -9,6 +9,7 @@ JavaScript and TypeScript bindings for the Aminus Genshin Impact calculation lib
 - **WebAssembly**: High-performance calculations compiled from Rust
 - **Cross-Platform**: Works in Node.js, browsers, and bundlers
 - **Zero Dependencies**: No runtime dependencies besides the WASM module
+- **Artifact Optimization**: Advanced algorithms for finding optimal artifact combinations
 
 ## Installation
 
@@ -73,6 +74,51 @@ builder.roll(Stat.CritDMG, 4, 5, 6); // RollQuality.AVG, rarity 5, 6 rolls
 // Get final stats
 const artifacts = builder.build();
 console.log(`Total Crit DMG: ${artifacts.get(Stat.CritDMG)}`);
+```
+
+### Artifact Optimization
+
+```typescript
+import { 
+  createStatTable, 
+  createRotation, 
+  optimizeArtifactMainStats,
+  optimizeArtifactSubstats,
+  Stat, Element, DamageType, BaseScaling, Amplifier 
+} from 'aminus-js';
+
+async function optimizeCharacter() {
+  // Create character stats
+  const characterStats = createStatTable();
+  characterStats.set(Stat.BaseATK, 106.0);
+  characterStats.set(Stat.CritRate, 0.05);
+  characterStats.set(Stat.CritDMG, 0.5);
+
+  // Create rotation (damage sequence)
+  const rotation = createRotation();
+  rotation.addDamageOperation(
+    'pyro_attack',
+    Element.Pyro,
+    DamageType.Normal,
+    BaseScaling.ATK,
+    Amplifier.None,
+    1.0, // instances
+    1.0  // motion value
+  );
+
+  // Optimize artifact main stats
+  const bestMainStats = await optimizeArtifactMainStats(characterStats, rotation);
+  console.log('Best main stats:', bestMainStats); // [sands, goblet, circlet]
+
+  // Optimize artifact substats
+  const substatDistribution = await optimizeArtifactSubstats(
+    characterStats,
+    rotation,
+    1.2, // energy recharge requirement
+    flower, feather, sands, goblet, circlet
+  );
+  console.log('Optimal substat distribution:', substatDistribution);
+}
 ```
 
 ## Building
@@ -156,6 +202,38 @@ builder.roll(Stat.CritDMG, RollQuality.AVG, 5, 4);
 const finalStats = builder.build();
 ```
 
+##### Rotation
+
+Defines a sequence of damage operations for optimization.
+
+```typescript
+const rotation = createRotation();
+
+// Add damage operations
+rotation.addDamageOperation(
+  'normal_attack',
+  Element.Pyro,
+  DamageType.Normal,
+  BaseScaling.ATK,
+  Amplifier.None,
+  1.0, // instances
+  1.0  // motion value
+);
+
+rotation.addDamageOperation(
+  'skill_attack',
+  Element.Pyro,
+  DamageType.Skill,
+  BaseScaling.ATK,
+  Amplifier.None,
+  1.0,
+  2.5
+);
+
+// Evaluate total damage
+const totalDamage = rotation.evaluate(characterStats);
+```
+
 ### Functions
 
 #### Damage Calculation
@@ -171,6 +249,42 @@ const damage = calculateDamage(
   character: StatTableWrapper,
   buffs?: StatTableWrapper
 ): number;
+```
+
+#### Artifact Optimization
+
+```typescript
+// Optimize artifact main stats
+const bestMainStats = await optimizeArtifactMainStats(
+  characterStats: StatTableWrapper,
+  target: Rotation
+): Promise<number[]>; // [sands, goblet, circlet] stat IDs
+
+// Optimize artifact substats
+const substatDistribution = await optimizeArtifactSubstats(
+  characterStats: StatTableWrapper,
+  target: Rotation,
+  energyRechargeRequirements?: number,
+  flower?: ArtifactPiece,
+  feather?: ArtifactPiece,
+  sands?: ArtifactPiece,
+  goblet?: ArtifactPiece,
+  circlet?: ArtifactPiece
+): Promise<Record<number, number>>; // stat ID -> roll count
+
+// Calculate stat gradients
+const gradients = await calculateStatGradients(
+  base: StatTableWrapper,
+  target: Rotation,
+  slopes: Record<number, number>
+): Promise<Record<number, number>>;
+
+// Find effective stats (ReLU heuristic)
+const effectiveStats = await calculateReluHeuristic(
+  base: StatTableWrapper,
+  target: Rotation,
+  slopes: Record<number, number>
+): Promise<number[]>;
 ```
 
 #### Formula Functions
@@ -325,27 +439,4 @@ Test files are located in the `tests/` directory.
 
 1. Make changes to the Rust source code in `src/`
 2. Run `npm run build` to compile WASM
-3. Add or update tests in `tests/`
-4. Run `npm test` to verify changes
-5. Update documentation as needed
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Related Projects
-
-- [Aminus Core](../../) - The main Rust library
-- [Aminus Python](../py/) - Python bindings 
-
-## Setup
-
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Ensure the WASM package is built:
-```bash
-wasm-pack build --target web --out-dir pkg --features js-bindings
-``` 
+3. Add or update tests in `

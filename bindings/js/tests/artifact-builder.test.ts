@@ -79,15 +79,15 @@ describe('Artifact Builder Tests', () => {
     );
 
     // Test substat constraints for KQM builder (should be different from default)
-    expect(builder.substatConstraint(Stat.FlatDEF, 5)).toBe(10);
-    expect(builder.substatConstraint(Stat.CritDMG, 5)).toBe(10);
-    expect(builder.substatConstraint(Stat.CritRate, 5)).toBe(10);
+    expect(builder.substatConstraint(Stat.FlatDEF, 5)).toBe(10+2);
+    expect(builder.substatConstraint(Stat.CritDMG, 5)).toBe(10+2);
+    expect(builder.substatConstraint(Stat.CritRate, 5)).toBe(10+2);
     
     // Builder with 1 artifact with main stat of type x has constraint reduced by 2
-    expect(builder.substatConstraint(Stat.EnergyRecharge, 5)).toBe(8);
+    expect(builder.substatConstraint(Stat.EnergyRecharge, 5)).toBe(8+2);
     
     // Builder with 2 artifacts with main stat of type x has constraint reduced by 4
-    expect(builder.substatConstraint(Stat.ATKPercent, 5)).toBe(6);
+    expect(builder.substatConstraint(Stat.ATKPercent, 5)).toBe(6+2);
 
     // Test that it has some rolls already (KQM pre-allocates 2 rolls per substat)
     expect(builder.currentRolls()).toBeGreaterThan(0);

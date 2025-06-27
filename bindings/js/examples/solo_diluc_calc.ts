@@ -4,7 +4,6 @@ import { StatTable, statFromString, getStatName, isElementalDmgBonus, Formulas, 
 
 let diluc = new StatFactory().getCharacterBaseStats("diluc")
 let wgs = new StatFactory().getWeaponStats("Wolf's Gravestone")
-
 diluc.addTable(wgs)
 diluc.addTable(StatTable.of([ //buffs
     [Stat.ATKPercent, 0.2],
@@ -33,7 +32,6 @@ let optimal_substats = Optimizers.gradient5StarKqmcArtifactSubstatOptimizer(
     1.0
 )
 console.log(optimal_substats)
-
 let builder = new ArtifactBuilder(
     new ArtifactPiece(5, 20, Stat.FlatHP), 
     new ArtifactPiece(5, 20, Stat.FlatATK), 
@@ -41,11 +39,9 @@ let builder = new ArtifactBuilder(
     new ArtifactPiece(5, 20, optimal_main_stats[1]), 
     new ArtifactPiece(5, 20, optimal_main_stats[2]), 
 )
-
 for (let [stat_id, num_rolls] of Object.entries(optimal_substats)) {
     builder.roll(Number(stat_id) , RollQuality.AVG, 5, num_rolls)
 }
-
 diluc.addTable(builder.build())
 
 let dps = rotation.evaluate(diluc)

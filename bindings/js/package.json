@@ -19,13 +19,16 @@
     "example": "npm run build:nodejs && node --loader ts-node/esm examples/basic-usage.ts"
   },
   "devDependencies": {
+    "@babel/core": "^7.27.4",
+    "@babel/preset-env": "^7.27.2",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
+    "babel-jest": "^30.0.2",
     "jest": "^29.5.0",
     "jest-environment-node": "^29.5.0",
-    "typescript": "^5.0.0",
     "ts-jest": "^29.1.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   },
   "jest": {
     "preset": "ts-jest/presets/default-esm",
@@ -57,4 +60,4 @@
     "url": "https://github.com/your-username/aminus.git",
     "directory": "bindings/js"
   }
-} 
+}

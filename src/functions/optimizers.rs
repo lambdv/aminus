@@ -18,8 +18,8 @@ pub mod optimizers{
     pub fn global_kqmc_artifact_main_stat_optimizer(
         //stats: Box<Statable>,
         //target: Box<Computable>
-        stats: StatTable,
-        target: Rotation
+        stats: &StatTable,
+        target: &Rotation
     ) -> VariableMainstatType{
 
         let sands_stats: std::collections::HashSet<Stat> = std::collections::HashSet::from_iter(POSSIBLE_SANDS_STATS.iter().cloned());
@@ -29,7 +29,7 @@ pub mod optimizers{
         
         // heuristic: check which stats actually increase target value
         let slopes = std::collections::HashMap::from_iter(pool.iter().map(|x|(*x, 1.0)));
-        let effective_set = relu_heuristic(&stats, &target, &slopes);
+        let effective_set = relu_heuristic(stats, target, &slopes);
 
         //intersect set of valid stats for sands, goblet and circlet with set of effective stats
         let sands_subset: std::collections::HashSet<Stat> = effective_set.intersection(&sands_stats).cloned().collect();
@@ -71,8 +71,8 @@ pub mod optimizers{
 
     /// finds best substat distrubtion 
     pub fn gradient_5_star_kqmc_artifact_substat_optimizer(
-        stats: StatTable,
-        target: Rotation,
+        stats: &StatTable,
+        target: &Rotation,
         flower: Option<ArtifactPiece>,
         feather: Option<ArtifactPiece>,
         sands: Option<ArtifactPiece>,
@@ -283,7 +283,7 @@ pub mod optimizers{
             ));
             target.add(String::from("atk1"), atk1);
 
-            let result = global_kqmc_artifact_main_stat_optimizer(stats, target);
+            let result = global_kqmc_artifact_main_stat_optimizer(&stats, &target);
             println!("{:?}", result);
             assert_eq!(result, (Stat::ATKPercent, Stat::PyroDMGBonus, Stat::CritRate));
         }
@@ -316,8 +316,8 @@ pub mod optimizers{
             let circlet = Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::CritRate});
 
             let res = gradient_5_star_kqmc_artifact_substat_optimizer(
-                stats, 
-                target, 
+                &stats, 
+                &target, 
                 flower, 
                 feather, 
                 sands, 
@@ -375,10 +375,7 @@ pub mod optimizers{
             let before = target.evaluate(&character_stats);
             
             // Apply artifact optimization (main stats only for this test)
-            let (sands, goblet, circlet) = global_kqmc_artifact_main_stat_optimizer(
-                character_stats.clone(), 
-                target
-            );
+            let (sands, goblet, circlet) = global_kqmc_artifact_main_stat_optimizer(&character_stats, &target);
 
             // Create optimized character with artifacts
             let mut optimized_stats = character_stats.clone();
@@ -433,8 +430,8 @@ pub mod optimizers{
             // This should panic because 2.0 ER requirement cannot be met with substats alone
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 gradient_5_star_kqmc_artifact_substat_optimizer(
-                    character_stats,
-                    target,
+                    &character_stats,
+                    &target,
                     None, None, None, None, None,
                     2.0 // energy recharge requirement that cannot be met
                 )
@@ -481,8 +478,8 @@ pub mod optimizers{
             let circlet = Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::CritRate});
 
             let res = gradient_5_star_kqmc_artifact_substat_optimizer(
-                character_stats,
-                target,
+                &character_stats,
+                &target,
                 flower,
                 feather,
                 sands,

@@ -61,4 +61,54 @@ export async function fetchCharacterBaseStats(name: string) {
 export async function fetchWeaponStats(name: string) {
   const wasm = await loadWasm();
   return await wasm.fetchWeaponStats(name);
+}
+
+// Optimizer functions
+export async function createRotation() {
+  const wasm = await loadWasm();
+  return new wasm.Rotation();
+}
+
+export async function createOptimizers() {
+  const wasm = await loadWasm();
+  return new wasm.Optimizers();
+}
+
+// Convenience functions for optimizer operations
+export async function optimizeArtifactMainStats(stats: any, target: any) {
+  const wasm = await loadWasm();
+  return wasm.Optimizers.globalKqmcArtifactMainStatOptimizer(stats, target);
+}
+
+export async function optimizeArtifactSubstats(
+  stats: any,
+  target: any,
+  energyRechargeRequirements: number = 1.0,
+  flower?: any,
+  feather?: any,
+  sands?: any,
+  goblet?: any,
+  circlet?: any
+) {
+  const wasm = await loadWasm();
+  return wasm.Optimizers.gradient5StarKqmcArtifactSubstatOptimizer(
+    stats,
+    target,
+    flower,
+    feather,
+    sands,
+    goblet,
+    circlet,
+    energyRechargeRequirements
+  );
+}
+
+export async function calculateStatGradients(base: any, target: any, slopes: any) {
+  const wasm = await loadWasm();
+  return wasm.Optimizers.statGradients(base, target, slopes);
+}
+
+export async function calculateReluHeuristic(base: any, target: any, slopes: any) {
+  const wasm = await loadWasm();
+  return wasm.Optimizers.reluHeuristic(base, target, slopes);
 } 
