@@ -36,3 +36,13 @@ pub trait ModifiableStatable: Statable {
         self
     }
 }
+
+#[cfg(test)] mod tests {
+    use super::*;
+    #[test] fn test_chainging_stattables() {
+        let s1 = StatTable::of(&vec![(Stat::FlatATK, 100.)]);
+        let s2 = StatTable::of(&vec![(Stat::FlatATK, 100.)]);
+        let s3 = s1.chain(Box::new(s2));
+        assert_eq!(s3.get(&Stat::FlatATK), 200.);
+    }
+}

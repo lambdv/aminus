@@ -46,7 +46,7 @@ impl ModifiableStatable for StatTable {
 mod tests {
     use super::*;
     #[test] fn construct_with_intial_values() {
-        let s = StatTable::of(&[
+        let s = StatTable::of(&vec![
             (Stat::ATKPercent, 1.0),
             (Stat::ATKPercent, 5.0),
         ]);
