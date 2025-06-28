@@ -1,23 +1,21 @@
 [package]
 name = "aminus"
-version = "0.1.0"
+version = "1.0.0-beta"
 edition = "2021"
-description = "genshin calculation library"
-authors = ["Lambdev"]
+description = "genshin stat and damage calculation library"
+authors = ["Lambdv"]
+license = "MIT"
+repository = "https://github.com/lambdv/aminus"
+documentation = "https://aminus.irminsul.moe/"
+
 
 [lib]
 name = "aminus"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
-# [workspace]
-# members = [
-#     "bindings/js"
-# ]
-
 [features]
 default = []
-python-bindings = []
 
 [dependencies]
 serde = { version = "1.0.219", features = ["derive"] }
