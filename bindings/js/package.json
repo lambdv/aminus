@@ -1,7 +1,7 @@
 {
-  "name": "aminus-js",
-  "version": "0.1.0",
-  "description": "JavaScript/TypeScript bindings for the aminus Genshin Impact calculation library",
+  "name": "aminus",
+  "version": "0.1.0-alpha.1",
+  "description": "Genshin Impact stat and damage calculation library",
   "type": "module",
   "main": "./pkg/aminus_js.js",
   "types": "./pkg/aminus_js.d.ts",
@@ -16,7 +16,9 @@
     "test:watch": "jest --watch",
     "dev": "npm run build && npm test",
     "generate-types": "wasm-pack build --target bundler --out-dir pkg",
-    "example": "npm run build:nodejs && node --loader ts-node/esm examples/basic-usage.ts"
+    "example": "npm run build:nodejs && node --loader ts-node/esm examples/basic-usage.ts",
+    "prepublishOnly": "npm run build:nodejs && npm test",
+    "prepack": "npm run build:nodejs"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
@@ -51,13 +53,25 @@
     "calculation",
     "wasm",
     "typescript",
-    "javascript"
+    "javascript",
+    "artifact-optimization",
+    "damage-calculator"
   ],
   "author": "Lambdev",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/aminus.git",
+    "url": "https://github.com/lambdv/aminus",
     "directory": "bindings/js"
+  },
+  "bugs": {
+    "url": "https://github.com/lambdv/aminus/issues"
+  },
+  "homepage": "https://github.com/lambdv/aminus#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

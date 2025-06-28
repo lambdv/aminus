@@ -1,4 +1,4 @@
-import { Stat, Element, DamageType, BaseScaling, Amplifier } from '../src/types';
+import { Stat } from '../src/types';
 import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
 
 let wasm: any;
