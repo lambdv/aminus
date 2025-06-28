@@ -2,8 +2,8 @@ import { describe, test, expect } from '@jest/globals';
 import { Stat, Element, DamageType, BaseScaling, Amplifier, RollQuality } from '../src/types';
 import { StatTable, statFromString, getStatName, isElementalDmgBonus, Formulas, StatFactory, Rotation, Optimizers, ArtifactPiece, ArtifactBuilder} from '../pkg/aminus_js';
 
-let diluc = new StatFactory().getCharacterBaseStats("diluc")
-let wgs = new StatFactory().getWeaponStats("Wolf's Gravestone")
+let diluc = StatFactory.getCharacterBaseStats("diluc")
+let wgs = StatFactory.getWeaponStats("Wolf's Gravestone")
 diluc.addTable(wgs)
 diluc.addTable(StatTable.of([ //buffs
     [Stat.ATKPercent, 0.2],
@@ -15,9 +15,12 @@ diluc.addTable(StatTable.of([ //buffs
 ]))
 
 let rotation = new Rotation()
-rotation.addDamageOperation("normal", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1.0, 1.0)
-rotation.addDamageOperation("skill", Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1.0, 1.0)
-rotation.addDamageOperation("burst", Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 1.0, 1.0)
+rotation.add("normal", (s) =>
+    Formulas.calculateDamage(Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1.0, 1.0, s))
+rotation.add("skill", (s) =>
+    Formulas.calculateDamage(Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1.0, 1.0, s))
+rotation.add("burst", (s) =>
+    Formulas.calculateDamage(Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 1.0, 1.0, s))
 
 let optimal_main_stats = Optimizers.globalKqmcArtifactMainStatOptimizer(diluc, rotation)
 console.log(optimal_main_stats)

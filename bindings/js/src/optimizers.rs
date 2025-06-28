@@ -24,35 +24,30 @@ impl Rotation {
         }
     }
 
-    #[wasm_bindgen(js_name = "addDamageOperation")]
-    pub fn add_damage_operation(
-        &mut self,
-        name: String,
-        element_id: u32,
-        damage_type_id: u32,
-        scaling_id: u32,
-        amplifier_id: u32,
-        instances: f32,
-        motion_value: f32,
-    ) -> Result<(), JsValue> {
-        let element = element_from_id(element_id)?;
-        let damage_type = damage_type_from_id(damage_type_id)?;
-        let scaling = scaling_from_id(scaling_id)?;
-        let amplifier = amplifier_from_id(amplifier_id)?;
-
+    /// Add a JS function as an operation to the rotation
+    #[wasm_bindgen(js_name = "add")]
+    pub fn add_js_operation(&mut self, name: String, op: &js_sys::Function) -> Result<(), JsValue> {
+        // Clone the function for the closure
+        let op = op.clone();
+        // The closure must take a StatTable and return a f32
         let operation: Operation = Box::new(move |stats| {
-            DMGFunction::calculate_damage(
-                element,
-                damage_type,
-                scaling,
-                amplifier,
-                instances,
-                motion_value,
-                Box::new(stats),
-                None,
-            )
+            // Create a new StatTable from the Statable by iterating through its stats
+            let mut js_stats = crate::stat_table::StatTable::new();
+            
+            // Copy all stats from the Statable to the JS StatTable
+            for (stat, value) in stats.iter() {
+                js_stats.add(stat as u32, value);
+            }
+            
+            // Call the JS function
+            let this = JsValue::NULL;
+            let arg = wasm_bindgen::JsValue::from(js_stats);
+            let result = op.call1(&this, &arg);
+            match result {
+                Ok(val) => val.as_f64().unwrap_or(0.0) as f32,
+                Err(_) => 0.0,
+            }
         });
-
         self.inner.add(name, operation);
         Ok(())
     }
@@ -140,7 +135,12 @@ impl Optimizers {
             let key = keys.get(i);
             let value = js_sys::Reflect::get(slopes, &key)?;
             
-            let stat_id = key.as_f64().ok_or("Invalid stat ID")? as u32;
+            // Convert string key to number
+            let stat_id = if key.is_string() {
+                key.as_string().unwrap().parse::<u32>().map_err(|_| JsValue::from_str("Invalid stat ID"))?
+            } else {
+                key.as_f64().ok_or("Invalid stat ID")? as u32
+            };
             let slope_value = value.as_f64().ok_or("Invalid slope value")? as f32;
             
             let stat = stat_from_id(stat_id)?;
@@ -174,7 +174,12 @@ impl Optimizers {
             let key = keys.get(i);
             let value = js_sys::Reflect::get(slopes, &key)?;
             
-            let stat_id = key.as_f64().ok_or("Invalid stat ID")? as u32;
+            // Convert string key to number
+            let stat_id = if key.is_string() {
+                key.as_string().unwrap().parse::<u32>().map_err(|_| JsValue::from_str("Invalid stat ID"))?
+            } else {
+                key.as_f64().ok_or("Invalid stat ID")? as u32
+            };
             let slope_value = value.as_f64().ok_or("Invalid slope value")? as f32;
             
             let stat = stat_from_id(stat_id)?;

@@ -85,3 +85,10 @@ export enum RollQuality {
 // Type for stat arrays
 export type StatEntry = [Stat, number];
 export type StatArray = StatEntry[]; 
+
+export type StatValue = {
+  stat_type: Stat,
+  stat_value: number,
+}
+
+export type StatTable = StatValue[];

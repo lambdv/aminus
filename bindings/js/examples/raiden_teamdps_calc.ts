@@ -158,34 +158,34 @@ function calculateRaidenNationalDPS() {
 
     // Xiangling's rotation
     const xianglingRotation = new Rotation();
-    xianglingRotation.addDamageOperation("E", Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 4, 2.23); // Guoba
-    xianglingRotation.addDamageOperation("N1_Vape", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.Forward, 1, 1.44); // 1-Hit Swing + Vape
-    xianglingRotation.addDamageOperation("N2", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1, 1.76); // 2-Hit Swing
-    xianglingRotation.addDamageOperation("N3_Vape", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.Forward, 1, 2.19); // 3-Hit Swing + Vape
-    xianglingRotation.addDamageOperation("Q_VV", Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.Forward, 8, 2.24); // Pyronado + VV + c1
-    xianglingRotation.addDamageOperation("Q", Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 4, 2.24); // Pyronado hits
+    xianglingRotationadd("E", Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 4, 2.23); // Guoba
+    xianglingRotationadd("N1_Vape", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.Forward, 1, 1.44); // 1-Hit Swing + Vape
+    xianglingRotationadd("N2", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1, 1.76); // 2-Hit Swing
+    xianglingRotationadd("N3_Vape", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.Forward, 1, 2.19); // 3-Hit Swing + Vape
+    xianglingRotationadd("Q_VV", Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.Forward, 8, 2.24); // Pyronado + VV + c1
+    xianglingRotationadd("Q", Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 4, 2.24); // Pyronado hits
 
     // Xingqiu's rotation
     const xingqiuRotation = new Rotation();
-    xingqiuRotation.addDamageOperation("E", Element.Hydro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 7.18); // Skill
-    xingqiuRotation.addDamageOperation("Q_c2_NO", Element.Hydro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 23, 1.09); // c2 + NO buffed Rain Swords
-    xingqiuRotation.addDamageOperation("Q_buffed", Element.Hydro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 12, 1.09); // c2 buffed Rain Swords
+    xingqiuRotationadd("E", Element.Hydro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 7.18); // Skill
+    xingqiuRotationadd("Q_c2_NO", Element.Hydro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 23, 1.09); // c2 + NO buffed Rain Swords
+    xingqiuRotationadd("Q_buffed", Element.Hydro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 12, 1.09); // c2 buffed Rain Swords
 
     // Bennett's rotation
     const bennettRotation = new Rotation();
-    bennettRotation.addDamageOperation("E", Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 2.75); // E
-    bennettRotation.addDamageOperation("E_no_buff", Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 2.75); // E no bennett buff
-    bennettRotation.addDamageOperation("Q", Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 1, 4.66); // Q
+    bennettRotationadd("E", Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 2.75); // E
+    bennettRotationadd("E_no_buff", Element.Pyro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 2.75); // E no bennett buff
+    bennettRotationadd("Q", Element.Pyro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 1, 4.66); // Q
 
     // Raiden's rotation
     const raidenRotation = new Rotation();
-    raidenRotation.addDamageOperation("E_cast", Element.Electro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 1.99); // E cast
-    raidenRotation.addDamageOperation("E_dot", Element.Electro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 18, 0.71); // E dot
-    raidenRotation.addDamageOperation("Q_cast", Element.Electro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 1, 10.78); // Q cast
-    raidenRotation.addDamageOperation("N3C_buffed", Element.Electro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 3, 6.73); // Bennett buffed n3c
-    raidenRotation.addDamageOperation("N2_buffed", Element.Electro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 2, 2.967); // Bennett buffed n2
-    raidenRotation.addDamageOperation("C", Element.Electro, DamageType.Charged, BaseScaling.ATK, Amplifier.None, 1, 3.763); // Charged attack
-    raidenRotation.addDamageOperation("N1C", Element.Electro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1, 3.763); // n1c
+    raidenRotationadd("E_cast", Element.Electro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 1, 1.99); // E cast
+    raidenRotationadd("E_dot", Element.Electro, DamageType.Skill, BaseScaling.ATK, Amplifier.None, 18, 0.71); // E dot
+    raidenRotationadd("Q_cast", Element.Electro, DamageType.Burst, BaseScaling.ATK, Amplifier.None, 1, 10.78); // Q cast
+    raidenRotationadd("N3C_buffed", Element.Electro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 3, 6.73); // Bennett buffed n3c
+    raidenRotationadd("N2_buffed", Element.Electro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 2, 2.967); // Bennett buffed n2
+    raidenRotationadd("C", Element.Electro, DamageType.Charged, BaseScaling.ATK, Amplifier.None, 1, 3.763); // Charged attack
+    raidenRotationadd("N1C", Element.Electro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1, 3.763); // n1c
 
     // ============================================================================
     // Calculate DPS for each character

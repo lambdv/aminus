@@ -1,15 +1,10 @@
 import { describe, test, expect } from '@jest/globals';
 import { Stat, RollQuality } from '../src/types';
-import {
-  ArtifactBuilder,
-  ArtifactPiece,
+import { ArtifactBuilder, ArtifactPiece,
   StatFactory,
   getRollQualityMultiplier,
   getSubStatValue,
-  getMainStatValue,
-  getCharacterBaseStats,
-  getWeaponStats
-} from '../pkg/aminus_js.js';
+  getMainStatValue, getCharacterBaseStats, getWeaponStats } from '../pkg/aminus_js.js';
 
 describe('Artifact Builder Tests', () => {
   test('default artifact builder', () => {
@@ -173,31 +168,29 @@ describe('Artifact Builder Tests', () => {
     expect(builder.currentRolls()).toBe(2);
   });
 
-  test('factory functions using StatFactory struct', () => {
-    const factory = new StatFactory();
-    
+  test('factory functions using StatFactory struct', () => {    
     // Test main stat values
-    const hp5Star20 = factory.getMainStatValue(5, 20, Stat.FlatHP);
+    const hp5Star20 = StatFactory.getMainStatValue(5, 20, Stat.FlatHP);
     assertApprox(hp5Star20, 4780.0, 0.1);
 
-    const atk5Star20 = factory.getMainStatValue(5, 20, Stat.FlatATK);
+    const atk5Star20 = StatFactory.getMainStatValue(5, 20, Stat.FlatATK);
     assertApprox(atk5Star20, 311.0, 0.1);
 
     // Test sub stat values
-    const critRate5Star = factory.getSubStatValue(5, Stat.CritRate);
+    const critRate5Star = StatFactory.getSubStatValue(5, Stat.CritRate);
     expect(critRate5Star).toBeGreaterThan(0);
 
-    const atkPercent5Star = factory.getSubStatValue(5, Stat.ATKPercent);
+    const atkPercent5Star = StatFactory.getSubStatValue(5, Stat.ATKPercent);
     expect(atkPercent5Star).toBeGreaterThan(0);
 
     // Test character stats
-    const dilucStats = factory.getCharacterBaseStats("Diluc");
+    const dilucStats = StatFactory.getCharacterBaseStats("Diluc");
     expect(dilucStats.get(Stat.BaseHP)).toBeGreaterThan(0);
     expect(dilucStats.get(Stat.BaseATK)).toBeGreaterThan(0);
     expect(dilucStats.get(Stat.BaseDEF)).toBeGreaterThan(0);
 
     // Test weapon stats
-    const weaponStats = factory.getWeaponStats("Wolf's Gravestone");
+    const weaponStats = StatFactory.getWeaponStats("Wolf's Gravestone");
     expect(weaponStats.get(Stat.BaseATK)).toBeGreaterThan(0);
   });
 

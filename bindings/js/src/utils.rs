@@ -128,10 +128,10 @@ pub fn is_elemental_dmg_bonus(stat_id: u32) -> bool {
     stat_from_id(stat_id).map(|s| s.is_elemental_dmg_bonus()).unwrap_or(false)
 }
 
-#[wasm_bindgen(js_name = "fuzzyMatch")]
-pub fn fuzzy_match_js(needled: &str, haystack: &str) -> bool {
-    StatFactory::fuzzy_match(needled, haystack)
-}
+// #[wasm_bindgen(js_name = "fuzzyMatch")]
+// pub fn fuzzy_match_js(needled: &str, haystack: &str) -> bool {
+//     StatFactory::fuzzy_match(needled, haystack)
+// }
 
 #[wasm_bindgen(js_name = "getRollQualityMultiplier")]
 pub fn get_roll_quality_multiplier(quality_id: u32) -> Result<f32, JsValue> {

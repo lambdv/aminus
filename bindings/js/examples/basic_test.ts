@@ -1,29 +1,13 @@
 import { Stat, Element, DamageType, BaseScaling, Amplifier } from '../src/types';
-import { StatTable, StatFactory, Rotation } from '../pkg/aminus_js';
+import { StatTable, StatFactory, Rotation, Formulas } from '../pkg/aminus_js';
 
-async function basicTest() {
-    console.log("Testing basic WASM module loading...");
-    
-    try {
-        // Test basic StatTable creation
-        const stats = new StatTable();
-        stats.add(Stat.FlatATK, 100);
-        console.log("StatTable created successfully");
-        
-        // Test basic Rotation creation
-        const rotation = new Rotation();
-        rotation.addDamageOperation("test", Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1, 1.0);
-        console.log("Rotation created successfully");
-        
-        // Test evaluation
-        const result = rotation.evaluate(stats);
-        console.log(`Evaluation result: ${result}`);
-        
-        console.log("Basic test passed!");
-        
-    } catch (error) {
-        console.error("Error in basic test:", error);
-    }
-}
+const s = new StatTable();
+s.add(Stat.FlatATK, 100);
 
-basicTest().catch(console.error); 
+const r = new Rotation();
+r.add("test", (s) =>
+    Formulas.calculateDamage(Element.Pyro, DamageType.Normal, BaseScaling.ATK, Amplifier.None, 1.0, 1.0, s)
+)
+
+const result = r.evaluate(s);
+console.log(`Evaluation result: ${result}`);

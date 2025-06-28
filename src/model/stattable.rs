@@ -42,14 +42,6 @@ impl ModifiableStatable for StatTable {
     }
 }
 
-
-//type Computable = dyn Fn(&dyn Statable) -> f32;
-// pub struct ComputedStatTable {
-//     constants: std::collections::HashMap<Stat, f32>,
-//     closures: std::collections::HashMap<Stat, Box<Computable>>,
-// }
-
-
 #[cfg(test)]
 mod tests {
     use super::*;

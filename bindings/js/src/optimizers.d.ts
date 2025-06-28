@@ -7,21 +7,11 @@ export declare class Rotation {
   /**
    * Add a damage operation to the rotation
    * @param name - Name of the operation
-   * @param element - Element type (Pyro, Hydro, etc.)
-   * @param damageType - Type of damage (Normal, Charged, etc.)
-   * @param scaling - Base scaling stat (ATK, DEF, HP)
-   * @param amplifier - Amplifier type (None, Forward, Reverse)
-   * @param instances - Number of damage instances
-   * @param motionValue - Motion value multiplier
+   * @param op - A function that takes a StatTable and returns a number
    */
-  addDamageOperation(
+  add(
     name: string,
-    element: Element,
-    damageType: DamageType,
-    scaling: BaseScaling,
-    amplifier: Amplifier,
-    instances: number,
-    motionValue: number
+    op: (s: StatTable) => number
   ): void;
   
   /**

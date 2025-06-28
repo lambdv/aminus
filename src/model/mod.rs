@@ -7,3 +7,4 @@ pub mod character;
 pub mod weapon;
 pub mod artifact;
 pub mod artifact_builder;
+pub mod stattable_builder;

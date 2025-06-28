@@ -96,7 +96,7 @@ async function optimizeCharacter() {
 
   // Create rotation (damage sequence)
   const rotation = createRotation();
-  rotation.addDamageOperation(
+  rotationadd(
     'pyro_attack',
     Element.Pyro,
     DamageType.Normal,
@@ -210,7 +210,7 @@ Defines a sequence of damage operations for optimization.
 const rotation = createRotation();
 
 // Add damage operations
-rotation.addDamageOperation(
+rotationadd(
   'normal_attack',
   Element.Pyro,
   DamageType.Normal,
@@ -220,7 +220,7 @@ rotation.addDamageOperation(
   1.0  // motion value
 );
 
-rotation.addDamageOperation(
+rotationadd(
   'skill_attack',
   Element.Pyro,
   DamageType.Skill,
