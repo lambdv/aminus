@@ -1,6 +1,6 @@
 {
   "name": "aminus",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0-beta",
   "description": "Genshin Impact stat and damage calculation library",
   "type": "module",
   "main": "./pkg/aminus_js.js",
