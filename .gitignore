@@ -10,3 +10,5 @@
 .vscode
 /.cursor
 .cursor
+.venv
+.vscode

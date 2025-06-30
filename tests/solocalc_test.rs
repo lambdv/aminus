@@ -1,3 +1,4 @@
+use aminus::factories::StatFactory;
 use aminus::functions::formulas::formulas::*;
 use aminus::model::stattable::*;
 use aminus::model::statable::*;
@@ -76,6 +77,51 @@ use aminus::functions::dmg_function::*;
     let expected = 1490.609;
     assert_aprx!(res, expected, 1.0);
 }
+
+
+
+
+#[test] fn kqm_damage_calculation() {
+    let diluc = StatFactory::get_character_base_stats("diluc").unwrap()
+        .chain(Box::new(StatFactory::get_weapon_stats("rainslasher").unwrap()))
+        .chain(Box::new(StatTable::of(&[
+            (Stat::ATKPercent, 0.2),
+            (Stat::ATKPercent, 0.48),
+            (Stat::FlatATK, 191.16+565.*1.32),
+            (Stat::ElementalMastery, 50.+(679.92*0.2)),
+            (Stat::PyroDMGBonus, 0.36+0.15),
+            (Stat::PyroResistanceReduction, 0.4),
+            (Stat::ReactionBonus, 0.15),
+        ])));
+
+    let rotation = Rotation::of(vec![
+        (String::from("N1_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
+        (String::from("E_1"),  Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 1.60, 1.0, Box::new(s), None))),
+        (String::from("N1_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
+        (String::from("N2_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.61, 1.0, Box::new(s), None))),
+        (String::from("N3_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.8154, 1.0, Box::new(s), None))),
+        (String::from("N4_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 2.4616, 1.0, Box::new(s), None))),
+        (String::from("E_2"),  Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 1.6529, 1.0, Box::new(s), None))),
+        (String::from("N1_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
+        (String::from("N2_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.61, 1.0, Box::new(s), None))),
+        (String::from("N3_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.8154, 1.0, Box::new(s), None))),
+        (String::from("N4_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 2.4616, 1.0, Box::new(s), None))),
+        (String::from("E_3"),  Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 2.1865, 1.0, Box::new(s), None))),
+        (String::from("N1_3"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
+        (String::from("N2_3"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.61, 1.0, Box::new(s), None))),
+        (String::from("N3_3"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.8154, 1.0, Box::new(s), None))),
+    ]);
+
+    
+}
+
+
+
+
+
+
+
+
 
 
 #[macro_export]
