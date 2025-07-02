@@ -6,6 +6,7 @@ use aminus::model::rotation::Rotation;
 // use aminus::formulas::formulas::*;
 use aminus::model::stat::*;
 use aminus::functions::dmg_function::*;
+use aminus::functions::optimizers::*;
 
 
 #[test] fn primative_character_damage_calculation() {
@@ -78,41 +79,51 @@ use aminus::functions::dmg_function::*;
     assert_aprx!(res, expected, 1.0);
 }
 
+fn default_cryo_na_formula(name: &str, x: &Box<dyn Statable>, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&dyn Statable) -> f32>) {
+    let num = num;
+    let multi = multi;
+    (String::from(name), Box::new(move |s| DMGFunction::calculate_damage(Element::Cryo, DamageType::Normal, 
+        BaseScaling::ATK, Amplifier::None, num as f32, multi, Box::new(s), None)))
+}
 
+fn default_cryo_e_formula(name: &str, x: &Box<dyn Statable>, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&dyn Statable) -> f32>) {
+    let num = num;
+    let multi = multi;
+    (String::from(name), Box::new(move |s| DMGFunction::calculate_damage(Element::Cryo, DamageType::Skill, 
+        BaseScaling::ATK, Amplifier::None, num as f32, multi, Box::new(s), None)))
+}
+
+fn default_cryo_q_formula(name: &str, x: &Box<dyn Statable>, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&dyn Statable) -> f32>) {
+    let num = num;
+    let multi = multi;
+    (String::from(name), Box::new(move |s| DMGFunction::calculate_damage(Element::Cryo, DamageType::Burst, 
+        BaseScaling::ATK, Amplifier::None, num as f32, multi, Box::new(s), None)))
+}
 
 
 #[test] fn kqm_damage_calculation() {
-    let diluc = StatFactory::get_character_base_stats("diluc").unwrap()
-        .chain(Box::new(StatFactory::get_weapon_stats("rainslasher").unwrap()))
-        .chain(Box::new(StatTable::of(&[
-            (Stat::ATKPercent, 0.2),
-            (Stat::ATKPercent, 0.48),
-            (Stat::FlatATK, 191.16+565.*1.32),
-            (Stat::ElementalMastery, 50.+(679.92*0.2)),
-            (Stat::PyroDMGBonus, 0.36+0.15),
-            (Stat::PyroResistanceReduction, 0.4),
-            (Stat::ReactionBonus, 0.15),
+    let ayaka = StatFactory::get_character_base_stats("ayaka").unwrap()
+        .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter").unwrap()))
+        .chain(Box::new(StatTable::of(&[ //snapshot buffs
+            (Stat::ATKPercent, 0.88),
+            (Stat::CritRate, 0.55),
+            (Stat::CryoDMGBonus, 0.73),
+            (Stat::NormalATKDMGBonus, 0.3),
+            (Stat::ChargeATKDMGBonus, 0.3),
+            (Stat::CryoResistanceReduction, 0.4),
         ])));
-
     let rotation = Rotation::of(vec![
-        (String::from("N1_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
-        (String::from("E_1"),  Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 1.60, 1.0, Box::new(s), None))),
-        (String::from("N1_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
-        (String::from("N2_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.61, 1.0, Box::new(s), None))),
-        (String::from("N3_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.8154, 1.0, Box::new(s), None))),
-        (String::from("N4_1"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 2.4616, 1.0, Box::new(s), None))),
-        (String::from("E_2"),  Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 1.6529, 1.0, Box::new(s), None))),
-        (String::from("N1_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
-        (String::from("N2_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.61, 1.0, Box::new(s), None))),
-        (String::from("N3_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.8154, 1.0, Box::new(s), None))),
-        (String::from("N4_2"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 2.4616, 1.0, Box::new(s), None))),
-        (String::from("E_3"),  Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 2.1865, 1.0, Box::new(s), None))),
-        (String::from("N1_3"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.65, 1.0, Box::new(s), None))),
-        (String::from("N2_3"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.61, 1.0, Box::new(s), None))),
-        (String::from("N3_3"), Box::new(|s| DMGFunction::calculate_damage(Element::Pyro, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 1.8154, 1.0, Box::new(s), None))),
+        default_cryo_na_formula("n1", &ayaka, 0.84, 3, None),
+        default_cryo_na_formula("n2", &ayaka, 0.894, 2, None),
+        default_cryo_na_formula("ca", &ayaka, 3.039, 2, None),
+        default_cryo_e_formula("skill", &ayaka, 4.07, 2, None),
+        default_cryo_q_formula("burstcuts", &ayaka, 1.91, 19, None),
+        default_cryo_q_formula("burstexplosion", &ayaka, 2.86, 1, None),
     ]);
-
+    let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&StatTable::unbox(ayaka), &rotation, 1.30);
+    let dps = rotation.evaluate(&ayaka)/21.;
     
+    println!("dps: {}", dps);
 }
 
 

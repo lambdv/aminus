@@ -23,6 +23,10 @@ impl StatTable {
     pub fn from_iter(iter: StatableIter) -> StatTable {
         Self::of(&iter.collect::<Vec<(Stat, f32)>>())
     }
+
+    pub fn unbox(x: Box<dyn Statable>) -> StatTable  {
+        StatTable::from_iter(x.iter())
+    }
 }
 
 impl Statable for StatTable {

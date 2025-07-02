@@ -37,6 +37,7 @@ pub trait ModifiableStatable: Statable {
     }
 }
 
+
 #[cfg(test)] mod tests {
     use super::*;
     #[test] fn test_chainging_stattables() {

@@ -8,28 +8,26 @@ Aminus is a genshin impact damage and stat calculation library and framework.
 
 
 ```rust
-import com.github.lambdv.ParametricTransformer.core.*;
-
-var ayaka = Characters.of("ayaka")
-    .equip(Weapons.of("mistsplitter"))
-    .add(StatTable.of(
-        Stat.ATKPercent, 0.88,
-        Stat.CritRate, 0.55,
-        Stat.ElementalDMGBonus, 0.73,
-        Stat.NormalATKDMGBonus, 0.3,
-        Stat.ChargeATKDMGBonus, 0.3,
-        Stat.CryoResistanceReduction, 0.4));
-
-var ayakaRotation = new Rotation()
-    .add("n1", DamageFormulas.defaultCryoNormalATK(3.0, 0.84))
-    .add("n2", DamageFormulas.defaultCryoNormalATK(2.0, 0.894))
-    .add("ca", DamageFormulas.defaultCryoChargedATK(2.0, 3.039))
-    .add("skill", DamageFormulas.defaultCryoSkillATK(2.0, 4.07))
-    .add("burstcutts", DamageFormulas.defaultCryoBurstATK(19.0, 1.91))
-    .add("burstexplosion", DamageFormulas.defaultCryoBurstATK(1.0, 2.86));
-
-ayaka.optimize(Optimizers.KQMSArtifactOptimizer(ayakaRotation, 1.30));
-var dps = ayakaRotation.compute(ayaka) / 21;
+let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
+    .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap()))
+    .chain(Box::new(StatTable::of(&[ //snapshot buffs
+        (Stat::ATKPercent, 0.88),
+        (Stat::CritRate, 0.55),
+        (Stat::CryoDMGBonus, 0.73),
+        (Stat::NormalATKDMGBonus, 0.3),
+        (Stat::ChargeATKDMGBonus, 0.3),
+        (Stat::CryoResistanceReduction, 0.4),
+    ])));
+let rotation = Rotation::of(vec![
+    default_cryo_na_formula!("n1", &ayaka, 0.84, 3, None),
+    default_cryo_na_formula!("n2", &ayaka, 0.894, 2, None),
+    default_cryo_na_formula!("ca", &ayaka, 3.039, 2, None),
+    default_cryo_e_formula!("skill", &ayaka, 4.07, 2, None),
+    default_cryo_q_formula!("burstcuts", &ayaka, 1.91, 19, None),
+    default_cryo_q_formula!("burstexplosion", &ayaka, 2.86, 1, None),
+]);
+let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&StatTable::unbox(ayaka), &rotation, 1.40);
+let dps = rotation.evaluate(&ayaka)/21.;
 ```
 
 

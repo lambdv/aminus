@@ -81,7 +81,7 @@ describe('StatFactory struct', () => {
     expect(c1.get(Stat.BaseDEF)).toBeCloseTo(c2.get(Stat.BaseDEF), 2);
   });
 
-  test('get_weapon_stats_works', () => {
+  test('get_weapon_base_stats_works', () => {
     const w = StatFactory.getWeaponStats('A Thousand Blazing Suns');
     expect(w.get(Stat.BaseATK)).toBeCloseTo(741.0, 2);
     expect(w.get(Stat.CritRate)).toBeCloseTo(0.11, 2);
@@ -132,7 +132,7 @@ describe('Legacy StatFactory functions', () => {
     expect(c1.get(Stat.BaseDEF)).toBeCloseTo(c2.get(Stat.BaseDEF), 2);
   });
 
-  test('get_weapon_stats_works', () => {
+  test('get_weapon_base_stats_works', () => {
     const w = getWeaponStats('A Thousand Blazing Suns');
     expect(w.get(Stat.BaseATK)).toBeCloseTo(741.0, 2);
     expect(w.get(Stat.CritRate)).toBeCloseTo(0.11, 2);

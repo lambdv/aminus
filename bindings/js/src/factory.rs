@@ -21,8 +21,8 @@ impl StatFactory {
     }
 
     #[wasm_bindgen(js_name = "getWeaponStats")]
-    pub fn get_weapon_stats(name: &str) -> Result<StatTable, JsValue> {
-        match RustStatFactory::get_weapon_stats(name) {
+    pub fn get_weapon_base_stats(name: &str) -> Result<StatTable, JsValue> {
+        match RustStatFactory::get_weapon_base_stats(name) {
             Ok(stats) => Ok(StatTable { inner: stats }),
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
@@ -75,8 +75,8 @@ pub fn get_character_base_stats(name: &str) -> Result<StatTable, JsValue> {
 }
 
 #[wasm_bindgen(js_name = "getWeaponStats")]
-pub fn get_weapon_stats(name: &str) -> Result<StatTable, JsValue> {
-    StatFactory::get_weapon_stats(name)
+pub fn get_weapon_base_stats(name: &str) -> Result<StatTable, JsValue> {
+    StatFactory::get_weapon_base_stats(name)
 }
 
 #[wasm_bindgen(js_name = "getMainStatValue")]

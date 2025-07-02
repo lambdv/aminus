@@ -292,6 +292,10 @@ impl ArtifactBuilder{
         self.max_rolls() - self.current_rolls()
     }
 
+    pub fn rolls_left_for_given(&self, stat_type: &Stat, quality: RollQuality, rarity: i8) -> i8 {
+        self.substat_constraint(stat_type, rarity) - self.current_rolls_for_given(stat_type, quality, rarity)
+    }
+
     ///helpers
     
     fn artifacts_iter(&self) -> std::vec::IntoIter<&ArtifactPiece> {

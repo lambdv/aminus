@@ -9,9 +9,41 @@ pub mod optimizers{
     use crate::model::statable::Statable;
     use crate::model::artifact::*;
     use crate::model::artifact_builder::*;
+
     pub type VariableMainstatType = (Stat,Stat,Stat);
     pub type SubstatDistribution = std::collections::HashMap<Stat, i8>;
 
+
+    ///TODO: Account for if meeting er recs with er sands or just er subs is better
+    pub fn optimal_kqmc_5_artifacts_stats(
+        stats: &StatTable,
+        target: &Rotation,
+        energy_recharge_requirements: f32,
+    ) -> StatTable {
+        let optimal_mainstats = global_kqmc_artifact_main_stat_optimizer(stats, target);
+        
+        let mut builder = ArtifactBuilder::new(
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatHP}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatATK}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: optimal_mainstats.0}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: optimal_mainstats.1}),
+            Some(ArtifactPiece{rarity:5, level:20, stat_type: optimal_mainstats.2})
+        );
+
+        let optimal_substats = gradient_5_star_kqmc_artifact_substat_optimizer(stats, target, 
+            Some(builder.flower.clone().unwrap()), 
+            Some(builder.feather.clone().unwrap()), 
+            Some(builder.sands.clone().unwrap()), 
+            Some(builder.goblet.clone().unwrap()), 
+            Some(builder.circlet.clone().unwrap()), 
+            energy_recharge_requirements);
+        
+        for (stat, count) in optimal_substats.iter() {
+            builder.roll(*stat, RollQuality::AVG, 5, *count);
+        }
+        let sum = StatTable::unbox(stats.chain(Box::new(builder.build())));
+        sum
+    }
 
     /// finds best aritfact main stat combo for a statable given a computable
     /// eg: best mains for a character for a particular rotation
@@ -91,12 +123,12 @@ pub mod optimizers{
             let combined_stats = StatTable::from_iter(stats.chain(Box::new(builder.build())).iter());
             combined_stats.get(&Stat::EnergyRecharge)
         } < energy_recharge_requirements {
-            if builder.rolls_left() <= 0 {
+            if builder.rolls_left() <= 0 || builder.rolls_left_for_given(&Stat::EnergyRecharge, RollQuality::AVG, 5) <= 0 {
                 panic!("Energy Recharge requirements cannot be met with substats alone");
             }
             builder.roll(Stat::EnergyRecharge, RollQuality::AVG, 5, 1);
         }
-        println!("builder: {:?}", builder.constraints);
+        //println!("builder: {:?}", builder.constraints);
         let mut possible_subs_to_roll: std::collections::HashSet<Stat> = POSSIBLE_SUB_STATS.iter().cloned().collect();
         
         //gradient search loop
@@ -129,11 +161,11 @@ pub mod optimizers{
             if best_dpr == 0.0 {
                 possible_subs_to_roll.clear();
             } else {
-                println!("substat: {}, dpr: {}", best_sub, best_dpr);
+                //println!("substat: {}, dpr: {}", best_sub, best_dpr);
                 builder.roll(best_sub, RollQuality::AVG, 5, 1);
             }
         }
-        
+
         // Convert builder rolls to SubstatDistribution format
         let mut distribution = std::collections::HashMap::new();
         for ((stat, _, _), count) in &builder.rolls {

@@ -91,6 +91,9 @@ impl CharacterBaseStatJSON {
             (Stat::BaseHP, self.base_hp.parse::<f32>().unwrap()),
             (Stat::BaseATK, self.base_atk.parse::<f32>().unwrap()),
             (Stat::BaseDEF, self.base_def.parse::<f32>().unwrap()),
+            (Stat::CritRate, 0.05),
+            (Stat::CritDMG, 0.5),
+            (Stat::EnergyRecharge, 1.0),
             (substat, substat_value),
         ]));
     }

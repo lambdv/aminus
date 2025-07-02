@@ -72,7 +72,7 @@ impl StatFactory{
             .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
     }
 
-    pub fn get_weapon_stats(name: &str) -> Result<StatTable> {
+    pub fn get_weapon_base_stats(name: &str) -> Result<StatTable> {
         let stat_list: WeaponJSON = StatFactory::find_match(WEAPON_DATA.data.clone(), name)?;
         
         stat_list.base_stats.last()
@@ -239,8 +239,8 @@ impl StatFactory{
         assert_eq!(c1, c2);
     }
 
-    #[test] fn get_weapon_stats_works() {
-        let w = StatFactory::get_weapon_stats("A Thousand Blazing Suns");
+    #[test] fn get_weapon_base_stats_works() {
+        let w = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns");
         
         let w = w.unwrap();
         assert_eq!(w.get(&Stat::BaseATK), 741.0);

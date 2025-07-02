@@ -18,7 +18,7 @@ use aminus::model::statable::Statable;
     
     // Compare with local data (should be the same)
     let amber_local = StatFactory::get_character_base_stats("Amber")?;
-    let weapon_local = StatFactory::get_weapon_stats("A Thousand Blazing Suns")?;
+    let weapon_local = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns")?;
     
     println!("Local vs API - Amber Base ATK: {} vs {}", 
              amber_local.get(&Stat::BaseATK), amber_stats.get(&Stat::BaseATK));
