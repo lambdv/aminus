@@ -1,6 +1,6 @@
 [package]
 name = "aminus"
-version = "1.0.0-beta"
+version = "1.0.1-beta"
 edition = "2021"
 description = "genshin stat and damage calculation library"
 authors = ["Lambdv"]
