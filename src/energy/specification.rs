@@ -36,14 +36,15 @@ pub struct SkillEnergySpec{
 }
 
 
-//energy constents
-const RIGHT_ELEMENT: i8 = 3;
-const NO_ELEMENT: i8 = 2;
-const WRONG_ELEMENT: i8 = 1;
-const ORB: i8 = 6;
-const OFF_FIELD_MULTIPLIER: f32 = 0.6;
-//onfield is 1
-
+//energy constaints
+pub const SAME_ELEMENT: i8 = 3;
+pub const NO_ELEMENT: i8 = 2; //aka clear or white elemebt
+pub const DIFFERENT_ELEMENT: i8 = 1;
+pub const ORB_MULTIPLIER: i8 = 6; //orb is just a particle multiplied by 6
+pub const OFF_FIELD_4_PARTY_MULTIPLIER: f32 = 0.6;
+pub const OFF_FIELD_3_PARTY_MULTIPLIER: f32 = 0.7;
+pub const OFF_FIELD_2_PARTY_MULTIPLIER: f32 = 0.8;
+//note: onfield is 1
 
 
 
