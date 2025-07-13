@@ -1,67 +1,89 @@
 # StatTable
 
-The `StatTable` module provides a table-based implementation for managing collections of statistics.
+Concrete statable that stores stat->f32 mapping in a hash map.
 
-## Overview
+## Description
 
-`StatTable` is a concrete implementation of the `Statable` trait that stores statistics in a hash map structure. It provides efficient lookup and modification of statistical values.
-
-## Key Features
-
-- **Hash Map Storage**: Uses HashMap for efficient stat lookup
-- **Statable Implementation**: Full implementation of the Statable trait
-- **ModifiableStatable Implementation**: Supports direct modification of stats
-- **Builder Pattern**: Includes builder methods for convenient construction
-- **Memory Efficient**: Only stores non-zero statistics
-
-## Core Methods
-
-### Construction
-
-- `new() -> StatTable`: Creates an empty stat table
-- `of(stats: &[StatValue]) -> StatTable`: Creates a stat table from an array of stat values
-
-### Statable Methods
-
-- `iter() -> StatableIter`: Returns an iterator over all stat-value pairs
-- `get(stat_type: &Stat) -> f32`: Returns the value for a specific stat
-
-### ModifiableStatable Methods
-
-- `add(stat_type: &Stat, value: f32) -> f32`: Adds a value to a specific stat
-- `add_table(other: StatableIter) -> &mut Self`: Adds all stats from another statable
-
-## Usage Examples
+This module provides the `StatTable` struct which is the concrete implementation of the `Statable` and `ModifiableStatable` traits, using a HashMap to store stat-value mappings.
 
 ```rust
-use aminus::model::{StatTable, Stat, Statable, ModifiableStatable};
+use crate::model::stat::Stat;
+use crate::model::statable::*;
+use crate::model::statable::ModifiableStatable;
 
-// Create an empty stat table
-let mut stats = StatTable::new();
+///concrete statable that stores stat->f32 mapping in a hash map
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct StatTable { 
+    inner: std::collections::HashMap<Stat, f32>, 
+}
 
-// Add some stats
-stats.add(&Stat::FlatATK, 100.0);
-stats.add(&Stat::ATKPercent, 25.0);
+impl StatTable {
+    pub fn new() -> StatTable {
+        StatTable { inner: std::collections::HashMap::new() }
+    }
+    pub fn of(values: &[(Stat, f32)]) -> StatTable {
+        let mut map = std::collections::HashMap::new();
+        for &(k, v) in values {
+            *map.entry(k).or_insert(0.0) += v;
+        }
+        StatTable { inner: map }
+    }
 
-// Create from array
-let stats = StatTable::of(&[
-    (Stat::FlatATK, 100.0),
-    (Stat::ATKPercent, 25.0),
-    (Stat::CritRate, 5.0),
-]);
+    pub fn from_iter(iter: StatableIter) -> StatTable {
+        Self::of(&iter.collect::<Vec<(Stat, f32)>>())
+    }
 
-// Get a specific stat
-let atk_bonus = stats.get(&Stat::ATKPercent); // 25.0
+    pub fn unbox(x: Box<dyn Statable>) -> StatTable  {
+        StatTable::from_iter(x.iter())
+    }
+}
 
-// Iterate over all stats
-for (stat, value) in stats.iter() {
-    println!("{}: {}", stat, value);
+impl Statable for StatTable {
+    fn get(&self, stat_type: &Stat) -> f32 {
+        *self.inner.get(stat_type).unwrap_or(&0.0)
+    }
+    fn iter(&self) -> StatableIter {
+        Box::new(self.inner.iter().map(|(k, v)| (*k, *v)))
+    }
+}
+
+impl ModifiableStatable for StatTable {
+    fn add(&mut self, stat_type: &Stat, value: f32)-> f32 {
+        self.inner
+            .insert(*stat_type, self.get(stat_type) + value)
+            .unwrap_or(0.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test] fn construct_with_intial_values() {
+        let s = StatTable::of(&vec![
+            (Stat::ATKPercent, 1.0),
+            (Stat::ATKPercent, 5.0),
+        ]);
+        assert_eq!(s.inner.get(&Stat::ATKPercent), Some(&6.0));
+        assert_eq!(s.get(&Stat::ATKPercent), 6.0);
+    }
+
+    #[test] fn test_adding_and_getting() {
+        let s = Stat::FlatATK;
+        let mut table: StatTable = StatTable::new();
+        assert_eq!(table.get(&s), 0.0); //starts at 0
+        table.add(&s, 10.0);
+        assert_eq!(table.get(&s), 10.0); //adding 10 sets it 0
+        table.add(&s, 10.0);
+        assert_eq!(table.get(&s), 20.0); //adding 10 more accumulates
+    }
+    #[test] fn test_adding_stattable() {
+        let mut t1 = StatTable::new();
+        assert_eq!(t1.get(&Stat::CritDMG), 0.0);
+        t1.add(&Stat::FlatATK, 2000.0);
+        let mut t2 = StatTable::new();
+        t2.add(&Stat::CritDMG, 0.5);
+        t1.add_table(t2.iter());
+        assert_eq!(t1.get(&Stat::CritDMG), 0.5);
+    }
 }
 ```
-
-## Performance Characteristics
-
-- **Lookup**: O(1) average case for stat retrieval
-- **Insertion**: O(1) average case for adding stats
-- **Memory**: Only stores non-zero statistics, memory efficient
-- **Iteration**: O(n) where n is the number of non-zero stats 

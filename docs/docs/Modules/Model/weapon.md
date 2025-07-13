@@ -1,66 +1,37 @@
 # Weapon
 
-The `Weapon` module defines data structures for representing game weapons and their properties.
+Abstraction over statable to model an ingame weapon.
 
-## Overview
+## Description
 
-This module provides the `Weapon` struct and related types that represent in-game weapons, including their base statistics, refinement level, and weapon-specific data.
-
-## Core Types
-
-### Weapon Struct
+This module provides the `Weapon` struct which represents an in-game weapon with base attack and a main stat. It implements the `Statable` trait to provide access to weapon statistics.
 
 ```rust
+use crate::model::stat::Stat;
+use crate::model::stattable::StatTable;
+use crate::model::statable::*;
+use crate::model::statable::ModifiableStatable;
+
+/// abstraction over statable to model an ingame weapon
 pub struct Weapon {
-    pub name: String,
-    pub level: u8,
-    pub refinement: u8,
-    pub base_stats: StatTable,
+    base_stat_value: f32,
+    main_stat_value: f32,
+    main_stat_type: Stat
 }
-```
 
-## Key Properties
-
-- **name**: Weapon's name identifier
-- **level**: Weapon level (1-90)
-- **refinement**: Refinement level (1-5)
-- **base_stats**: Base weapon statistics
-
-## Methods
-
-### Construction
-
-- `new(name: String, level: u8, refinement: u8) -> Weapon`: Creates a new weapon
-- `with_stats(stats: StatTable) -> Weapon`: Sets the weapon's base statistics
-
-### Statable Implementation
-
-The `Weapon` struct implements the `Statable` trait, providing:
-
-- `iter() -> StatableIter`: Returns all weapon statistics
-- `get(stat_type: &Stat) -> f32`: Returns the value for a specific stat
-
-## Usage Examples
-
-```rust
-use aminus::model::{Weapon, Stat, Statable};
-
-// Create a weapon
-let weapon = Weapon::new("Wolf's Gravestone".to_string(), 90, 1);
-
-// Get weapon attack
-let weapon_atk = weapon.get(&Stat::BaseATK);
-
-// Get all weapon stats
-for (stat, value) in weapon.iter() {
-    println!("{}: {}", stat, value);
+impl Statable for Weapon{
+    fn get(&self, stat_type: &Stat) -> f32{
+        match stat_type{
+            Stat::BaseATK => self.base_stat_value,
+            s if *s == self.main_stat_type  => 0.0,
+            _ => 0.0,
+        }
+    }
+    fn iter(&self) -> Box<dyn Iterator<Item = (Stat, f32)> + '_> {
+        Box::new(vec![
+            (Stat::BaseATK, self.base_stat_value),
+            (self.main_stat_type, self.main_stat_value),
+        ].into_iter())
+    }
 }
-```
-
-## Weapon Statistics
-
-Weapons typically provide:
-
-- **Base ATK**: Primary attack value
-- **Sub-stat**: Secondary statistic (ATK%, Crit Rate, Crit DMG, etc.)
-- **Passive Effects**: Special abilities (handled separately from base stats) 
+``` 
