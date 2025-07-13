@@ -82,21 +82,22 @@ specififes a sequence of actions (normal attack, skill, burst) a character perfo
 
 a rotation is just a collection of (StatTable)->number operations where the StatTable represents a character's total stats used for this action while then number is the damage output of the action.
 
-
-
-
-
-
-## Installation
- 1. **Clone The Repository**
+## Use for Rust
+1. add to rust project
    ```bash
-   git clone https://github.com/lambdv/aminus.git 
+   cargo add aminus
    ```
- 2. **Navigate into the directory**
-  ```bash
-  cd aminus
-  ```
- 3. **Install Dependencies**
+2. use in your code
+   ```rust
+   use aminus::*;
+   ```
+
+## Use for Typescript
+1. install from npm
    ```bash
-   cargo build
+   npm install aminus
+   ```
+2. use in your code
+   ```typescript
+   import { StatFactory, StatTable, Rotation, optimizers } from "aminus";
    ```
