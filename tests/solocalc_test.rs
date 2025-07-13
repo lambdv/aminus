@@ -3,7 +3,6 @@ use aminus::functions::formulas::formulas::*;
 use aminus::model::stattable::*;
 use aminus::model::statable::*;
 use aminus::model::rotation::Rotation;
-// use aminus::formulas::formulas::*;
 use aminus::model::stat::*;
 use aminus::functions::dmg_function::*;
 use aminus::functions::optimizers::*;

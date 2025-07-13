@@ -4,12 +4,18 @@ sidebar_position: 1
 
 # Introduction
 
-Aminus is a genshin impact damage and stat calculation library and framework.
-
+a genshin impact damage and stat calculation library.
 
 ```rust
-let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
-    .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap()))
+use aminus::factories::*;
+use aminus::model::stattable::*;
+use aminus::model::rotation::*;
+use aminus::model::stat::*;
+use aminus::functions::dmg_function::*;
+use aminus::functions::optimizers::*;
+
+let ayaka = StatFactory::get_character_base_stats("ayaka").unwrap()
+    .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter").unwrap()))
     .chain(Box::new(StatTable::of(&[ //snapshot buffs
         (Stat::ATKPercent, 0.88),
         (Stat::CritRate, 0.55),
@@ -19,14 +25,14 @@ let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
         (Stat::CryoResistanceReduction, 0.4),
     ])));
 let rotation = Rotation::of(vec![
-    default_cryo_na_formula!("n1", &ayaka, 0.84, 3, None),
-    default_cryo_na_formula!("n2", &ayaka, 0.894, 2, None),
-    default_cryo_na_formula!("ca", &ayaka, 3.039, 2, None),
-    default_cryo_e_formula!("skill", &ayaka, 4.07, 2, None),
-    default_cryo_q_formula!("burstcuts", &ayaka, 1.91, 19, None),
-    default_cryo_q_formula!("burstexplosion", &ayaka, 2.86, 1, None),
+    default_cryo_na_formula("n1", &ayaka, 0.84, 3, None),
+    default_cryo_na_formula("n2", &ayaka, 0.894, 2, None),
+    default_cryo_na_formula("ca", &ayaka, 3.039, 2, None),
+    default_cryo_e_formula("skill", &ayaka, 4.07, 2, None),
+    default_cryo_q_formula("burstcuts", &ayaka, 1.91, 19, None),
+    default_cryo_q_formula("burstexplosion", &ayaka, 2.86, 1, None),
 ]);
-let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&StatTable::unbox(ayaka), &rotation, 1.40);
+let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&StatTable::unbox(ayaka), &rotation, 1.30);
 let dps = rotation.evaluate(&ayaka)/21.;
 ```
 

@@ -51,5 +51,5 @@ cargo build
 ```
 ## Contributing
 
-We welcome contributions from the community! Whether you want to report a bug, suggest a feature, or submit code changes, we'd love to hear from you. Just fork the repository, make your changes, and submit a pull request - no contribution is too small!
-
+We are looking for contributers!
+If you're interested in cotnrbuting from bug reports to implementing new features or updating docs: just fork the repo to add changes and submitt a pull request.
