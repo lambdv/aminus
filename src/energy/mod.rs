@@ -1,2 +1,2 @@
 pub mod specification;
-pub mod energy_calculator;
+pub mod energy_formulas;
