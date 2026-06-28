@@ -16,8 +16,8 @@ use aminus::core::types::Stat;
     println!("Weapon Crit Rate: {}", weapon_stats.get(&Stat::CritRate));
     
     // Compare with local data (should be the same)
-    let amber_local = StatFactory::get_character_base_stats("Amber")?;
-    let weapon_local = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns")?;
+    let amber_local = StatFactory::get_character_base_stats("Amber", 90)?;
+    let weapon_local = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns", 90)?;
     
     println!("Local vs API - Amber Base ATK: {} vs {}", 
              amber_local.get(&Stat::BaseATK), amber_stats.get(&Stat::BaseATK));

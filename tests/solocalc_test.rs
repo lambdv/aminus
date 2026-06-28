@@ -5,7 +5,8 @@ use aminus::functions::stat_factory::StatFactory;
 use aminus::functions::formulas::formulas::*;
 use aminus::functions::dmg_function::DMGFunction;
 use aminus::functions::optimizers::*;
-
+use aminus::stats;
+use aminus::rotation;
 
 #[test] fn primative_character_damage_calculation() {
     let mut diluc = StatTable::of(&[
@@ -96,8 +97,8 @@ fn default_cryo_q_formula(name: &str, x: &StatTable, multi: f32, num: i8, option
 
 
 #[test] fn kqm_damage_calculation() {
-    let ayaka = StatFactory::get_character_base_stats("ayaka").unwrap()
-        .chain(StatFactory::get_weapon_base_stats("mistsplitter").unwrap())
+    let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
+        .chain(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap())
         .chain(StatTable::of(&[
             (Stat::ATKPercent, 0.88),
             (Stat::CritRate, 0.55),
@@ -121,9 +122,57 @@ fn default_cryo_q_formula(name: &str, x: &StatTable, multi: f32, num: i8, option
 }
 
 
+#[test] fn kqm_damage_calculation_with_macros() {
+    let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
+        .chain(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap())
+        .chain(stats! {
+            Stat::ATKPercent: 0.88,
+            Stat::CritRate: 0.55,
+            Stat::CryoDMGBonus: 0.73,
+            Stat::NormalATKDMGBonus: 0.3,
+            Stat::ChargeATKDMGBonus: 0.3,
+            Stat::CryoResistanceReduction: 0.4,
+        });
+    let rotation = rotation! {
+        ("n1", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.84, 3.0, None),
+        ("n2", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.894, 2.0, None),
+        ("ca", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 3.039, 2.0, None),
+        ("skill", Element::Cryo, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 4.07, 2.0, None),
+        ("burstcuts", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 1.91, 19.0, None),
+        ("burstexplosion", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 2.86, 1.0, None),
+    };
+    let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&ayaka, &rotation, 1.30);
+    let dps = rotation.evaluate(&ayaka)/21.;
+    
+    println!("dps: {}", dps);
+}
 
 
 
+#[test] fn kqm_team_damage_calculation_with_macros() {
+    let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
+        .chain(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap())
+        .chain(stats! {
+            Stat::ATKPercent: 0.88,
+            Stat::CritRate: 0.55,
+            Stat::CryoDMGBonus: 0.73,
+            Stat::NormalATKDMGBonus: 0.3,
+            Stat::ChargeATKDMGBonus: 0.3,
+            Stat::CryoResistanceReduction: 0.4,
+        });
+    let rotation = rotation! {
+        ("n1", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.84, 3.0, None),
+        ("n2", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.894, 2.0, None),
+        ("ca", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 3.039, 2.0, None),
+        ("skill", Element::Cryo, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 4.07, 2.0, None),
+        ("burstcuts", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 1.91, 19.0, None),
+        ("burstexplosion", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 2.86, 1.0, None),
+    };
+    let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&ayaka, &rotation, 1.30);
+    let dps = rotation.evaluate(&ayaka)/21.;
+    
+    println!("dps: {}", dps);
+}
 
 
 

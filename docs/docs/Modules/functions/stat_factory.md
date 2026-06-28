@@ -50,13 +50,15 @@ static ARTIFACT_SUB_STAT_DATA: Lazy<AllArtifactSubStatJson> = Lazy::new(|| {
 
 impl StatFactory{
 
-    /// reads cached character base stats of a given name as a stattable 
-    pub fn get_character_base_stats(name: &str) -> Result<StatTable> {
+    /// reads cached character base stats of a given name and level as a stattable 
+    pub fn get_character_base_stats(name: &str, level: i8) -> Result<StatTable> {
         let stat_list = StatFactory::find_match(CHARACTER_DATA.data.clone(), name)?;
         
-        stat_list.base_stats.last()
+        stat_list.base_stats.iter()
+            .filter(|s| s.lvl.starts_with(&format!("{level}/")))
+            .last()
             .map(|x| x.to_stattable())
-            .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
+            .ok_or_else(|| anyhow!("no character base stats found for level {level}"))?
     }
 
     /// fetches character base stats from Irminsul API asynchronously
@@ -81,12 +83,14 @@ impl StatFactory{
             .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
     }
 
-    pub fn get_weapon_base_stats(name: &str) -> Result<StatTable> {
+    pub fn get_weapon_base_stats(name: &str, level: i8) -> Result<StatTable> {
         let stat_list: WeaponJSON = StatFactory::find_match(WEAPON_DATA.data.clone(), name)?;
         
-        stat_list.base_stats.last()
+        stat_list.base_stats.iter()
+            .filter(|s| s.level.starts_with(&format!("{level}/")))
+            .last()
             .map(|x| x.to_stattable())
-            .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
+            .ok_or_else(|| anyhow!("no weapon base stats found for level {level}"))?
     }
 
     /// fetches weapon stats from Irminsul API asynchronously
@@ -227,7 +231,7 @@ impl StatFactory{
     use super::*;
 
     #[test] fn get_character_expected() {
-        let amber = StatFactory::get_character_base_stats("Amber");
+        let amber = StatFactory::get_character_base_stats("Amber", 90);
         let amber = amber.unwrap();
         assert_eq!(amber.get(&Stat::BaseATK), 223.02);
         assert_eq!(amber.get(&Stat::BaseHP), 9461.18);
@@ -235,21 +239,30 @@ impl StatFactory{
         assert_eq!(amber.get(&Stat::ATKPercent), 0.240);
     }
 
+    #[test] fn get_character_at_level_20() {
+        let amber = StatFactory::get_character_base_stats("Amber", 20);
+        let amber = amber.unwrap();
+        assert_eq!(amber.get(&Stat::BaseATK), 62.01);
+        assert_eq!(amber.get(&Stat::BaseHP), 2630.48);
+        assert_eq!(amber.get(&Stat::BaseDEF), 166.99);
+        assert_eq!(amber.get(&Stat::ATKPercent), 0.0);
+    }
+
     #[test] fn fuzzy_match_test() {
         assert!(StatFactory::fuzzy_match("ayaka","Kamisato Ayaka"));
     }
 
     #[test] fn get_chara_fuzzy() {
-        let c1 = StatFactory::get_character_base_stats("Kamisato Ayaka");
+        let c1 = StatFactory::get_character_base_stats("Kamisato Ayaka", 90);
         let c1 = c1.unwrap();
-        let c2 = StatFactory::get_character_base_stats("ayaka");
+        let c2 = StatFactory::get_character_base_stats("ayaka", 90);
         let c2 = c2.unwrap();
 
         assert_eq!(c1, c2);
     }
 
     #[test] fn get_weapon_base_stats_works() {
-        let w = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns");
+        let w = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns", 90);
         
         let w = w.unwrap();
         assert_eq!(w.get(&Stat::BaseATK), 741.0);

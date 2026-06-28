@@ -14,8 +14,8 @@ use aminus::model::stat::*;
 use aminus::functions::dmg_function::*;
 use aminus::functions::optimizers::*;
 
-let ayaka = StatFactory::get_character_base_stats("ayaka").unwrap()
-    .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter").unwrap()))
+let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
+    .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap()))
     .chain(Box::new(StatTable::of(&[ //snapshot buffs
         (Stat::ATKPercent, 0.88),
         (Stat::CritRate, 0.55),
