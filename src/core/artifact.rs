@@ -49,8 +49,3 @@ pub const POSSIBLE_CIRCLE_STATS: &[Stat] = &[
     Stat::CritDMG,
     Stat::HealingBonus,
 ];
-
-#[cfg(test)] mod tests {
-    use super::*;
-    #[test] fn manual_construction() {}
-}

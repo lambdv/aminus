@@ -3,9 +3,9 @@ use crate::core::types::Stat;
 use crate::core::stattable::StatTable;
 use std::collections::HashSet;
 
-macro_rules! hello {
+macro_rules! StatTable {
     () => {
-        println!("Hello, world!");
+        StatTable::of($kv)
     };
 }
 
@@ -13,6 +13,6 @@ macro_rules! hello {
 mod tests {
     #[test]
     fn test() {
-        hello!();
+        let _ = StatTable!(&[(Stat::BaseATK, 42.0)]);
     }
 }
