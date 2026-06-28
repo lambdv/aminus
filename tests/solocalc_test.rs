@@ -1,10 +1,9 @@
-use aminus::factories::StatFactory;
+use aminus::core::stattable::*;
+use aminus::core::rotation::Rotation;
+use aminus::core::types::*;
+use aminus::functions::stat_factory::StatFactory;
 use aminus::functions::formulas::formulas::*;
-use aminus::model::stattable::*;
-use aminus::model::statable::*;
-use aminus::model::rotation::Rotation;
-use aminus::model::stat::*;
-use aminus::functions::dmg_function::*;
+use aminus::functions::dmg_function::DMGFunction;
 use aminus::functions::optimizers::*;
 
 
@@ -49,11 +48,7 @@ use aminus::functions::optimizers::*;
     let t= total_atk(&diluc);
     assert_aprx!(t, 1667.0, 10.0);
 
-    let skill_formula = Box::new(|s: &dyn Statable| {
-        
-        let mut stat_table = StatTable::new();
-        stat_table.add_table(s.iter());
-
+    let skill_formula = Box::new(|s: &StatTable| {
         DMGFunction::calculate_damage(
             Element::Pyro, 
             DamageType::Skill, 
@@ -61,7 +56,7 @@ use aminus::functions::optimizers::*;
             Amplifier::None, 
             1.0, 
             1.0, 
-            Box::new(&stat_table), 
+            s, 
             None  
         )
     });
@@ -78,39 +73,39 @@ use aminus::functions::optimizers::*;
     assert_aprx!(res, expected, 1.0);
 }
 
-fn default_cryo_na_formula(name: &str, x: &Box<dyn Statable>, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&dyn Statable) -> f32>) {
+fn default_cryo_na_formula(name: &str, x: &StatTable, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&StatTable) -> f32 + 'static>) {
     let num = num;
     let multi = multi;
     (String::from(name), Box::new(move |s| DMGFunction::calculate_damage(Element::Cryo, DamageType::Normal, 
-        BaseScaling::ATK, Amplifier::None, num as f32, multi, Box::new(s), None)))
+        BaseScaling::ATK, Amplifier::None, num as f32, multi, s, None)))
 }
 
-fn default_cryo_e_formula(name: &str, x: &Box<dyn Statable>, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&dyn Statable) -> f32>) {
+fn default_cryo_e_formula(name: &str, x: &StatTable, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&StatTable) -> f32 + 'static>) {
     let num = num;
     let multi = multi;
     (String::from(name), Box::new(move |s| DMGFunction::calculate_damage(Element::Cryo, DamageType::Skill, 
-        BaseScaling::ATK, Amplifier::None, num as f32, multi, Box::new(s), None)))
+        BaseScaling::ATK, Amplifier::None, num as f32, multi, s, None)))
 }
 
-fn default_cryo_q_formula(name: &str, x: &Box<dyn Statable>, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&dyn Statable) -> f32>) {
+fn default_cryo_q_formula(name: &str, x: &StatTable, multi: f32, num: i8, option: Option<f32>) -> (String, Box<dyn Fn(&StatTable) -> f32 + 'static>) {
     let num = num;
     let multi = multi;
     (String::from(name), Box::new(move |s| DMGFunction::calculate_damage(Element::Cryo, DamageType::Burst, 
-        BaseScaling::ATK, Amplifier::None, num as f32, multi, Box::new(s), None)))
+        BaseScaling::ATK, Amplifier::None, num as f32, multi, s, None)))
 }
 
 
 #[test] fn kqm_damage_calculation() {
     let ayaka = StatFactory::get_character_base_stats("ayaka").unwrap()
-        .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter").unwrap()))
-        .chain(Box::new(StatTable::of(&[ //snapshot buffs
+        .chain(StatFactory::get_weapon_base_stats("mistsplitter").unwrap())
+        .chain(StatTable::of(&[
             (Stat::ATKPercent, 0.88),
             (Stat::CritRate, 0.55),
             (Stat::CryoDMGBonus, 0.73),
             (Stat::NormalATKDMGBonus, 0.3),
             (Stat::ChargeATKDMGBonus, 0.3),
             (Stat::CryoResistanceReduction, 0.4),
-        ])));
+        ]));
     let rotation = Rotation::of(vec![
         default_cryo_na_formula("n1", &ayaka, 0.84, 3, None),
         default_cryo_na_formula("n2", &ayaka, 0.894, 2, None),
@@ -119,7 +114,7 @@ fn default_cryo_q_formula(name: &str, x: &Box<dyn Statable>, multi: f32, num: i8
         default_cryo_q_formula("burstcuts", &ayaka, 1.91, 19, None),
         default_cryo_q_formula("burstexplosion", &ayaka, 2.86, 1, None),
     ]);
-    let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&StatTable::unbox(ayaka), &rotation, 1.30);
+    let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&ayaka, &rotation, 1.30);
     let dps = rotation.evaluate(&ayaka)/21.;
     
     println!("dps: {}", dps);

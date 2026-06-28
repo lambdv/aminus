@@ -1,4 +1,4 @@
-use crate::core::types::Element;
+use crate::model::stat::Element;
 
 //character energy data
 

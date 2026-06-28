@@ -1,5 +1,8 @@
-use crate::{core::stattable::StatTable, standardize::flatten_str};
-use crate::core::types::Stat;
+use crate::{model::stattable::StatTable, standardize::flatten_str};
+use crate::model::statable::Statable;
+use crate::model::stat::Stat;
+use crate::model::statable::ModifiableStatable;
+use std::fs::File;
 use std::io::prelude::*;
 use std::str::FromStr;
 use serde::Deserialize;

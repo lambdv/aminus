@@ -1,0 +1,86 @@
+use crate::core::types::Stat;
+
+pub type StatValue = (Stat, f32);
+
+pub type StatableIter<'a> = Box<dyn Iterator<Item=StatValue>+'a>;
+
+///concrete statable that stores stat->f32 mapping in a hash map
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct StatTable {
+    inner: std::collections::HashMap<Stat, f32>,
+}
+
+impl StatTable {
+    pub fn new() -> StatTable {
+        StatTable { inner: std::collections::HashMap::new() }
+    }
+    pub fn of(values: &[(Stat, f32)]) -> StatTable {
+        let mut map = std::collections::HashMap::new();
+        for &(k, v) in values {
+            *map.entry(k).or_insert(0.0) += v;
+        }
+        StatTable { inner: map }
+    }
+
+    pub fn from_iter(iter: StatableIter) -> StatTable {
+        Self::of(&iter.collect::<Vec<(Stat, f32)>>())
+    }
+
+    pub fn get(&self, stat_type: &Stat) -> f32 {
+        *(self.inner.get(stat_type).unwrap_or(&0.0))
+    }
+
+    pub fn iter(&self) -> StatableIter {
+        Box::new(self.inner.iter().map(|(k, v)| (*k, *v)))
+    }
+
+    pub fn add(&mut self, stat_type: &Stat, value: f32)-> f32 {
+        self.inner
+            .insert(*stat_type, self.get(stat_type) + value)
+            .unwrap_or(0.0)
+    }
+
+    pub fn add_table(&mut self, other: StatableIter) -> &mut Self {
+        other.for_each(|(k, v)| { self.add(&k, v); });
+        self
+    }
+
+    pub fn chain(&self, other: StatTable) -> StatTable {
+        let mut res = StatTable::new();
+        res.add_table(self.iter());
+        res.add_table(other.iter());
+        res
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test] fn construct_with_intial_values() {
+        let s = StatTable::of(&vec![
+            (Stat::ATKPercent, 1.0),
+            (Stat::ATKPercent, 5.0),
+        ]);
+        assert_eq!(s.inner.get(&Stat::ATKPercent), Some(&6.0));
+        assert_eq!(s.get(&Stat::ATKPercent), 6.0);
+    }
+
+    #[test] fn test_adding_and_getting() {
+        let s = Stat::FlatATK;
+        let mut table: StatTable = StatTable::new();
+        assert_eq!(table.get(&s), 0.0); //starts at 0
+        table.add(&s, 10.0);
+        assert_eq!(table.get(&s), 10.0); //adding 10 sets it 0
+        table.add(&s, 10.0);
+        assert_eq!(table.get(&s), 20.0); //adding 10 more accumulates
+    }
+    #[test] fn test_adding_stattable() {
+        let mut t1 = StatTable::new();
+        assert_eq!(t1.get(&Stat::CritDMG), 0.0);
+        t1.add(&Stat::FlatATK, 2000.0);
+        let mut t2 = StatTable::new();
+        t2.add(&Stat::CritDMG, 0.5);
+        t1.add_table(t2.iter());
+        assert_eq!(t1.get(&Stat::CritDMG), 0.5);
+    }
+}

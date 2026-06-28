@@ -1,8 +1,8 @@
 #![allow(unused_imports, unused_variables)]
 #[macro_use]
 pub mod utils;
-pub mod core;
-pub use core::*;
+pub mod model;
+pub use model::*;
 pub mod functions;
 pub use functions::*;
 pub use utils::*;
