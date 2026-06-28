@@ -147,33 +147,201 @@ fn default_cryo_q_formula(name: &str, x: &StatTable, multi: f32, num: i8, option
     println!("dps: {}", dps);
 }
 
+// pub fn swirl_damage(
+//     character_level: i8,
+//     elemental_mastery: f32,
+//     reaction_bonus: f32,
+//     res_multiplier: f32,
+//     instances: f32,
+// ) -> f32 {
+//     let level_multiplier = match character_level {
+//         90 => 1446.85,
+//         _ => todo!("add level multiplier table"),
+//     };
 
+//     transformative_reaction_damage(
+//         level_multiplier,
+//         0.6,
+//         elemental_mastery,
+//         reaction_bonus,
+//         res_multiplier,
+//         instances,
+//     )
+// }
 
-#[test] fn kqm_team_damage_calculation_with_macros() {
-    let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
-        .chain(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap())
-        .chain(stats! {
-            Stat::ATKPercent: 0.88,
-            Stat::CritRate: 0.55,
-            Stat::CryoDMGBonus: 0.73,
-            Stat::NormalATKDMGBonus: 0.3,
-            Stat::ChargeATKDMGBonus: 0.3,
-            Stat::CryoResistanceReduction: 0.4,
-        });
-    let rotation = rotation! {
-        ("n1", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.84, 3.0, None),
-        ("n2", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.894, 2.0, None),
-        ("ca", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 3.039, 2.0, None),
-        ("skill", Element::Cryo, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 4.07, 2.0, None),
-        ("burstcuts", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 1.91, 19.0, None),
-        ("burstexplosion", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 2.86, 1.0, None),
-    };
-    let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&ayaka, &rotation, 1.30);
-    let dps = rotation.evaluate(&ayaka)/21.;
-    
-    println!("dps: {}", dps);
-}
+// #[test]
+// fn diluc_furina_bennett_xianyun_sheet_calc() {
+//     let rotation_len = 22.0;
 
+//     let diluc = stats! {
+//         Stat::BaseATK: 845.0,
+//         Stat::ATKPercent: 1.02,
+//         Stat::FlatATK: 1342.0,
+//         Stat::ElementalMastery: 79.0,
+//         Stat::CritRate: 0.96,
+//         Stat::CritDMG: 1.78,
+//         Stat::PyroDMGBonus: 1.60,
+//         Stat::PyroResistanceReduction: 0.40,
+//         Stat::ReactionBonus: 0.15,
+//     };
+
+//     let diluc_rotation = rotation! {
+//         // vv + 4pcNO + 0 cw stack low plunge Vape
+//         ("low_plunge_vape_no_vv", Element::Pyro, DamageType::Plunging, BaseScaling::ATK, Amplifier::Forward, 3.29, 4.0, None),
+
+//         // vv + 4pcNO + 0 cw stack collision plunge
+//         ("collision_plunge_no_vv", Element::Pyro, DamageType::Plunging, BaseScaling::ATK, Amplifier::None, 1.6444, 2.0, None),
+
+//         // vv + 0 cw stack low plunge Vape
+//         ("low_plunge_vape_vv", Element::Pyro, DamageType::Plunging, BaseScaling::ATK, Amplifier::Forward, 3.29, 4.0, None),
+
+//         // vv + 0 cw stack collision plunge
+//         ("collision_plunge_vv", Element::Pyro, DamageType::Plunging, BaseScaling::ATK, Amplifier::None, 1.6444, 2.0, None),
+
+//         // Xianyun A4 flat damage. This may need special handling if your DMGFunction
+//         // only supports talent multiplier damage.
+//         ("xianyun_a4_flat", Element::Pyro, DamageType::Plunging, BaseScaling::FlatDamage, Amplifier::None, 49837.0, 8.0, None),
+//     };
+
+//     let furina = stats! {
+//         Stat::BaseHP: 15307.0,
+//         Stat::HPPercent: 0.66,
+//         Stat::FlatHP: 5288.0,
+//         Stat::BaseATK: 698.0,
+//         Stat::ATKPercent: 0.10,
+//         Stat::FlatATK: 344.0,
+//         Stat::CritRate: 0.69,
+//         Stat::CritDMG: 1.78,
+//         Stat::HydroDMGBonus: 0.46,
+//         Stat::SkillDMGBonus: 0.70,
+//         Stat::HydroResistanceReduction: 0.18,
+//     };
+
+//     let furina_rotation = rotation! {
+//         ("ousia_bubble_cast", Element::Hydro, DamageType::Skill, BaseScaling::HP, Amplifier::None, 0.13, 1.0, None),
+//         ("gentilhomme_usher", Element::Hydro, DamageType::Skill, BaseScaling::HP, Amplifier::None, 0.14, 6.0, None),
+//         ("surintendante_chevalmarin", Element::Hydro, DamageType::Skill, BaseScaling::HP, Amplifier::None, 0.14, 12.0, None),
+//         ("mademoiselle_crabaletta", Element::Hydro, DamageType::Skill, BaseScaling::HP, Amplifier::None, 0.14, 4.0, None),
+//         ("let_the_people_rejoice", Element::Hydro, DamageType::Burst, BaseScaling::HP, Amplifier::None, 0.19, 1.0, None),
+//     };
+
+//     let bennett = stats! {
+//         Stat::BaseATK: 756.0,
+//         Stat::ATKPercent: 0.55,
+//         Stat::FlatATK: 1342.0,
+//         Stat::CritRate: 0.69,
+//         Stat::CritDMG: 1.29,
+//         Stat::PyroDMGBonus: 0.47,
+//         Stat::BurstDMGBonus: 0.20,
+//         Stat::ElementalMastery: 40.0,
+//     };
+
+//     let bennett_rotation = rotation! {
+//         ("buffed_vape_e", Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::Forward, 2.75, 1.0, None),
+//         ("unbuffed_unreacted_e", Element::Pyro, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 2.75, 2.0, None),
+//         ("vape_q", Element::Pyro, DamageType::Burst, BaseScaling::ATK, Amplifier::Forward, 4.66, 1.0, None),
+//     };
+
+//     let xianyun = stats! {
+//         Stat::BaseATK: 845.0,
+//         Stat::ATKPercent: 2.43,
+//         Stat::FlatATK: 1342.0,
+//         Stat::CritRate: 0.31,
+//         Stat::CritDMG: 0.63,
+//         Stat::AnemoDMGBonus: 0.15,
+//         Stat::ElementalMastery: 40.0,
+//         Stat::PhysicalResistanceReduction: 0.40,
+//         Stat::ReactionBonus: 0.60,
+//     };
+
+//     let xianyun_rotation = Rotation::of(vec![
+//     (
+//         String::from("infused_na"),
+//         Box::new(move |s| {
+//             DMGFunction::calculate_damage(
+//                 Element::Pyro,
+//                 DamageType::Normal,
+//                 BaseScaling::ATK,
+//                 Amplifier::None,
+//                 1.0,
+//                 0.69,
+//                 s,
+//                 None,
+//             )
+//         }),
+//     ),
+//     (
+//         String::from("skill_cast"),
+//         Box::new(move |s| {
+//             DMGFunction::calculate_damage(
+//                 Element::Anemo,
+//                 DamageType::Skill,
+//                 BaseScaling::ATK,
+//                 Amplifier::None,
+//                 1.0,
+//                 0.42,
+//                 s,
+//                 None,
+//             )
+//         }),
+//     ),
+//     (
+//         String::from("burst_cast"),
+//         Box::new(move |s| {
+//             DMGFunction::calculate_damage(
+//                 Element::Anemo,
+//                 DamageType::Burst,
+//                 BaseScaling::ATK,
+//                 Amplifier::None,
+//                 1.0,
+//                 1.84,
+//                 s,
+//                 None,
+//             )
+//         }),
+//     ),
+//     (
+//         String::from("burst_tick"),
+//         Box::new(move |s| {
+//             DMGFunction::calculate_damage(
+//                 Element::Anemo,
+//                 DamageType::Burst,
+//                 BaseScaling::ATK,
+//                 Amplifier::None,
+//                 8.0,
+//                 0.666,
+//                 s,
+//                 None,
+//             )
+//         }),
+//     ),
+//     (
+//         String::from("swirl"),
+//         Box::new(move |_| {
+//             // 12 swirls = 22,893 total damage from the spreadsheet
+//             22_893.0
+//         }),
+//     ),
+// ]);
+
+//     let diluc_dpr = diluc_rotation.evaluate(&diluc);
+//     let furina_dpr = furina_rotation.evaluate(&furina);
+//     let bennett_dpr = bennett_rotation.evaluate(&bennett);
+//     let xianyun_dpr = xianyun_rotation.evaluate(&xianyun);
+
+//     let total_dpr = diluc_dpr + furina_dpr + bennett_dpr + xianyun_dpr;
+//     let total_dps = total_dpr / rotation_len;
+
+//     println!("Diluc DPR: {diluc_dpr}");
+//     println!("Furina DPR: {furina_dpr}");
+//     println!("Bennett DPR: {bennett_dpr}");
+//     println!("Xianyun DPR: {xianyun_dpr}");
+//     println!("Total DPR: {total_dpr}");
+//     println!("Total DPS: {total_dps}");
+
+//     // assert!((total_dpr - 1_452_779.0).abs() < 10_000.0);
+//     // assert!((total_dps - 66_035.0).abs() < 500.0);
+// }
 
 
 

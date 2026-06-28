@@ -100,6 +100,7 @@ pub enum BaseScaling {
     ATK,
     DEF,
     HP,
+    FlatDamage
 }
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
