@@ -1,5 +1,6 @@
-use crate::core::stattable::*;
-use crate::core::types::*;
+use crate::model::stattable::*;
+use crate::model::stat::*;
+use crate::model::statable::*;
 use crate::functions::formulas::*;
 
 /// higher level functions to compute damage from statables
@@ -14,7 +15,7 @@ impl DMGFunction {
         amplifier: Amplifier,
         instances: f32,
         motion_value: f32,
-        character: &StatTable,
+        character: Box<&dyn Statable>,
         buffs: Option<&StatTable>
     ) -> f32 {
         if amplifier == Amplifier::Forward || amplifier == Amplifier::Reverse {

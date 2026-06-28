@@ -1,11 +1,14 @@
 /// module of functions that provide algorithms to optimize statables
 pub mod optimizers{
+    use crate::model::operation::Operation;
     use crate::functions::stat_factory::StatFactory;
-    use crate::core::rotation::{Rotation, Operation};
-    use crate::core::stattable::*;
-    use crate::core::types::Stat;
-    use crate::core::artifact::*;
-    use crate::core::artifact_builder::*;
+    use crate::rotation::Rotation;
+    use crate::{artifact::ArtifactSpec, stattable::*};
+    use crate::stat::Stat;
+    use crate::statable::ModifiableStatable;
+    use crate::model::statable::Statable;
+    use crate::model::artifact::*;
+    use crate::model::artifact_builder::*;
 
     pub type VariableMainstatType = (Stat,Stat,Stat);
     pub type SubstatDistribution = std::collections::HashMap<Stat, i8>;
@@ -38,7 +41,7 @@ pub mod optimizers{
         for (stat, count) in optimal_substats.iter() {
             builder.roll(*stat, RollQuality::AVG, 5, *count);
         }
-            let sum = stats.chain(builder.build());
+        let sum = StatTable::unbox(stats.chain(Box::new(builder.build())));
         sum
     }
 
@@ -82,8 +85,8 @@ pub mod optimizers{
                         Some(ArtifactPiece{rarity:5, level:20, stat_type: *circlet})
                     );
                     let artifact = builder.build();
-                    let sum = stats.chain(artifact);
-                    let value = target.evaluate(&sum);
+                    let sum = &StatTable::from_iter(stats.chain(Box::new(artifact)).iter());
+                    let value = target.evaluate(sum);
                     if value > best_value {
                         best_value = value;
                         best_combo = combo;
@@ -117,7 +120,7 @@ pub mod optimizers{
         
         //meet er reqs from subs
         while {
-            let combined_stats = stats.chain(builder.build());
+            let combined_stats = StatTable::from_iter(stats.chain(Box::new(builder.build())).iter());
             combined_stats.get(&Stat::EnergyRecharge)
         } < energy_recharge_requirements {
             if builder.rolls_left() <= 0 || builder.rolls_left_for_given(&Stat::EnergyRecharge, RollQuality::AVG, 5) <= 0 {
@@ -141,7 +144,7 @@ pub mod optimizers{
                     builder.roll(substat, RollQuality::AVG, 5, 1);
                     
                     // Calculate DPR with this roll
-                    let combined_stats = stats.chain(builder.build());
+                    let combined_stats = StatTable::from_iter(stats.chain(Box::new(builder.build())).iter());
                     let dpr = target.evaluate(&combined_stats);
                     
                     // Unroll to restore previous state
@@ -163,7 +166,7 @@ pub mod optimizers{
             }
         }
 
-        //convert builder rolls to SubstatDistribution format
+        // Convert builder rolls to SubstatDistribution format
         let mut distribution = std::collections::HashMap::new();
         for ((stat, _, _), count) in &builder.rolls {
             distribution.insert(*stat, *count);
@@ -181,9 +184,9 @@ pub mod optimizers{
         let mut gradients = std::collections::HashMap::new();
         for (stat, delta) in slopes {
             let direction = StatTable::of(&[(*stat, *delta)]);
-            let adjusted = base.chain(direction);
+            let adjusted = base.chain(Box::new(direction));
             let before = target.evaluate(base);
-            let after = target.evaluate(&adjusted);
+            let after = target.evaluate(&StatTable::from_iter(adjusted.iter()));
             let gradient  = (after - before) / *delta;
             gradients.insert(*stat, gradient );
         }
@@ -245,8 +248,13 @@ pub mod optimizers{
 
     #[cfg(test)] mod tests {
         use super::*;
-        use crate::functions::dmg_function::DMGFunction;
-        use crate::core::types::*;
+        use crate::dmg_function::*;
+        use crate::stat::*;
+        use crate::{
+            dmg_function::DMGFunction, 
+            model::stat::Stat, 
+            model::stattable::StatTable,
+        };
 
         #[test] fn test_gradients() {
             let stats = StatTable::of(&[
@@ -268,7 +276,7 @@ pub mod optimizers{
                         Amplifier::None, 
                         1.0, 
                         1.0, 
-                        x, 
+                        Box::new(x), 
                         None,
                     )
                 ))
@@ -302,7 +310,7 @@ pub mod optimizers{
                 BaseScaling::ATK, 
                 Amplifier::None, 
                 1.0, 1.0, 
-                x, 
+                Box::new(x), 
                 None,
             ));
             target.add(String::from("atk1"), atk1);
@@ -328,7 +336,7 @@ pub mod optimizers{
                 BaseScaling::ATK, 
                 Amplifier::None, 
                 1.0, 1.0, 
-                x, 
+                Box::new(x), 
                 None,
             ));
             target.add(String::from("atk1"), atk1);
@@ -375,7 +383,7 @@ pub mod optimizers{
                 BaseScaling::ATK, 
                 Amplifier::None, 
                 1.0, 1.0, 
-                x, 
+                Box::new(x), 
                 None,
             ));
             target.add(String::from("t"), atk1);
@@ -391,10 +399,10 @@ pub mod optimizers{
             ]);
 
             // Add weapon stats (Dragon's Bane equivalent)
-            character_stats.add_table(StatTable::of(&[
-                (Stat::BaseATK, 454.0),
-                (Stat::ElementalMastery, 221.0),
-            ]).iter());
+            character_stats.add_table(Box::new(StatTable::of(&[
+                (Stat::BaseATK, 454.0), // Dragon's Bane base ATK
+                (Stat::ElementalMastery, 221.0), // Dragon's Bane EM
+            ]).iter()));
 
             let before = target.evaluate(&character_stats);
             
@@ -403,11 +411,11 @@ pub mod optimizers{
 
             // Create optimized character with artifacts
             let mut optimized_stats = character_stats.clone();
-            optimized_stats.add_table(StatTable::of(&[
-                (sands, 0.466),
-                (goblet, 0.466),
-                (circlet, 0.311),
-            ]).iter());
+            optimized_stats.add_table(Box::new(StatTable::of(&[
+                (sands, 0.466), // Sands main stat value
+                (goblet, 0.466), // Goblet main stat value  
+                (circlet, 0.311), // Circlet main stat value
+            ]).iter()));
 
             // Create a new target for the second evaluation
             let mut target2 = Rotation::new();
@@ -417,7 +425,7 @@ pub mod optimizers{
                 BaseScaling::ATK, 
                 Amplifier::None, 
                 1.0, 1.0, 
-                x, 
+                Box::new(x), 
                 None,
             ));
             target2.add(String::from("t"), atk2);
@@ -436,7 +444,7 @@ pub mod optimizers{
                 BaseScaling::ATK, 
                 Amplifier::None, 
                 1.0, 1.0, 
-                x, 
+                Box::new(x), 
                 None,
             ));
             target.add(String::from("t"), atk1);
@@ -473,7 +481,7 @@ pub mod optimizers{
                 BaseScaling::ATK, 
                 Amplifier::None, 
                 1.0, 1.0, 
-                x, 
+                Box::new(x), 
                 None,
             ));
             target.add(String::from("t"), atk1);
@@ -489,10 +497,11 @@ pub mod optimizers{
                 (Stat::FlatATK, 900.0), // Additional flat ATK
             ]);
 
-            character_stats.add_table(StatTable::of(&[
-                (Stat::BaseATK, 510.0),
-                (Stat::EnergyRecharge, 0.459),
-            ]).iter());
+            // Add weapon stats (The Catch equivalent)
+            character_stats.add_table(Box::new(StatTable::of(&[
+                (Stat::BaseATK, 510.0), // The Catch base ATK
+                (Stat::EnergyRecharge, 0.459), // The Catch ER
+            ]).iter()));
 
             let flower = Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatHP});
             let feather = Some(ArtifactPiece{rarity:5, level:20, stat_type: Stat::FlatATK});

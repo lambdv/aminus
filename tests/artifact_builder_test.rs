@@ -1,8 +1,7 @@
-use aminus::model::artifact_builder::*;
-use aminus::factories::*;
-use aminus::model::stattable::StatTable;
-use aminus::model::statable::Statable;
-use aminus::stat::Stat;
+use aminus::core::artifact_builder::*;
+use aminus::core::stattable::StatTable;
+use aminus::core::types::Stat;
+use aminus::functions::stat_factory::StatFactory;
 use aminus::assert_aprx;
 
 

@@ -1,30 +1,31 @@
 /// module that provides function implementation of formulas to compute f32s from statables
 pub mod formulas{
-    use crate::core::stattable::*;
-    use crate::core::types::*;
+    use crate::model::stattable::*;
+    use crate::model::stat::*;
+    use crate::model::statable::*;
     
-    pub fn total_atk(stats: &StatTable) -> f32 {
+    pub fn total_atk(stats: &impl Statable) -> f32 {
         let base_atk = stats.get(&Stat::BaseATK);
         let atk_percent = stats.get(&Stat::ATKPercent);
         let flat_atk = stats.get(&Stat::FlatATK);
         base_atk * (1.0+atk_percent) + flat_atk
     }
 
-    pub fn total_def(stats: &StatTable) -> f32 {
+    pub fn total_def(stats: &impl Statable) -> f32 {
         let flat_def = stats.get(&Stat::FlatDEF);
         let def_percent = stats.get(&Stat::DEFPercent);
         let base_def = stats.get(&Stat::BaseDEF);
         base_def * (1.0+def_percent) + flat_def
     }
 
-    pub fn total_hp(stats: &StatTable) -> f32 { 
+    pub fn total_hp(stats: &impl Statable) -> f32 { 
         let flat_hp = stats.get(&Stat::FlatHP);
         let hp_percent = stats.get(&Stat::HPPercent);
         let base_hp = stats.get(&Stat::BaseHP);
         base_hp * (1.0+hp_percent) + flat_hp
     }
 
-    pub fn avg_crit_multiplier(stats: &StatTable) -> f32 {
+    pub fn avg_crit_multiplier(stats: &impl Statable) -> f32 {
         let cr = stats.get(&Stat::CritRate);
         let cr = if cr > 1.0 { 1.0 } else { cr };
         let cr = if cr < 0.0 { 0.0 } else { cr };
@@ -85,6 +86,8 @@ pub mod formulas{
     #[cfg(test)]
     mod tests {
         use super::*;
+        use crate::model::stattable::StatTable;
+        use crate::utils::testing::*;
         use crate::utils::testing::*;
         #[test] fn atk_fomrula() {
             let base = 42.0;

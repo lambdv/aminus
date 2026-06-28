@@ -1,6 +1,5 @@
 use aminus::functions::stat_factory::StatFactory;
-use aminus::model::stat::Stat;
-use aminus::model::statable::Statable;
+use aminus::core::types::Stat;
 
 #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Fetching character stats from Irminsul API...");
