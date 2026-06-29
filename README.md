@@ -1,57 +1,41 @@
 # aminus
-a genshin impact damage and stat calculation library for rust and typescript.
+a genshin impact damage/stat calculation & optimization library.
 
-npm: https://www.npmjs.com/package/aminus 
+this is a programmatic implementation of KQMC-like excel spreadsheet calculators. 
+- represent character, weapon, artifact stats using stat table (hashmap of stat->float)
+- functions module for damage and stat calculation formulas 
+- model sequence of character damage instances (rotation) as closures
+- roll artifact substats for pool of 5 5-star artifacts, 4-star artifacts or 4 4-star artifacts + 1 5-star artifact using artifact builder
+- optimize artifact substat roll distrobution and main stats based on kqmc standards with gradient ascent and greedy algorithms
 
 cargo: https://crates.io/crates/aminus
 
-```rust
-let ayaka = StatFactory::get_character_base_stats("ayaka", 90).unwrap()
-    .chain(Box::new(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap()))
-    .chain(Box::new(stats!{ //snapshot buffs
-        (Stat::ATKPercent, 0.88),
-        (Stat::CritRate, 0.55),
-        (Stat::CryoDMGBonus, 0.73),
-        (Stat::NormalATKDMGBonus, 0.3),
-        (Stat::ChargeATKDMGBonus, 0.3),
-        (Stat::CryoResistanceReduction, 0.4),
-    }
-    ));
-let rotation = Rotation::of(vec![
-    default_cryo_na_formula("n1", &ayaka, 0.84, 3, None),
-    default_cryo_na_formula("n2", &ayaka, 0.894, 2, None),
-    default_cryo_na_formula("ca", &ayaka, 3.039, 2, None),
-    default_cryo_e_formula("skill", &ayaka, 4.07, 2, None),
-    default_cryo_q_formula("burstcuts", &ayaka, 1.91, 19, None),
-    default_cryo_q_formula("burstexplosion", &ayaka, 2.86, 1, None),
-]);
-let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&StatTable::unbox(ayaka), &rotation, 1.30);
-let dps = rotation.evaluate(&ayaka)/21.;
-    .chain(Box::new(StatTable::of(&[ //snapshot buffs
-        (Stat::ATKPercent, 0.88),
-        (Stat::CritRate, 0.55),
-        (Stat::CryoDMGBonus, 0.73),
-        (Stat::NormalATKDMGBonus, 0.3),
-        (Stat::ChargeATKDMGBonus, 0.3),
-        (Stat::CryoResistanceReduction, 0.4),
-    ])));
-let rotation = Rotation::of(vec![
-    default_cryo_na_formula("n1", &ayaka, 0.84, 3, None),
-    default_cryo_na_formula("n2", &ayaka, 0.894, 2, None),
-    default_cryo_na_formula("ca", &ayaka, 3.039, 2, None),
-    default_cryo_e_formula("skill", &ayaka, 4.07, 2, None),
-    default_cryo_q_formula("burstcuts", &ayaka, 1.91, 19, None),
-    default_cryo_q_formula("burstexplosion", &ayaka, 2.86, 1, None),
-]);
-let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&StatTable::unbox(ayaka), &rotation, 1.30);
-let dps = rotation.evaluate(&ayaka)/21.;
-```
+npm: https://www.npmjs.com/package/aminus 
 
-## Features
-- Stat Modeling
-- Damage Calculation
-- Artifact Mainstat & Substat Optimization (based on KQM Calculation Standard)
-- Energy Recharnge Requirements Calculation (wip)
+```rust
+    let ayaka = 
+        StatFactory::get_character_base_stats("ayaka", 90).unwrap()
+        .chain(StatFactory::get_weapon_base_stats("mistsplitter", 90).unwrap())
+        .chain(stats! { // snapshot buffs
+            Stat::ATKPercent: 0.88, // 4pc no + 4pc tom + ttds 
+            Stat::CritRate: 0.55, // 4pc bs + 
+            Stat::CryoDMGBonus: 0.73,
+            Stat::NormalATKDMGBonus: 0.3,
+            Stat::ChargeATKDMGBonus: 0.3,
+            Stat::CryoResistanceReduction: 0.4,
+        });
+    let rotation = rotation! {
+        ("n1", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.84, 3.0, None),
+        ("n2", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 0.894, 2.0, None),
+        ("ca", Element::Cryo, DamageType::Normal, BaseScaling::ATK, Amplifier::None, 3.039, 2.0, None),
+        ("skill", Element::Cryo, DamageType::Skill, BaseScaling::ATK, Amplifier::None, 4.07, 2.0, None),
+        ("burstcuts", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 1.91, 19.0, None),
+        ("burstexplosion", Element::Cryo, DamageType::Burst, BaseScaling::ATK, Amplifier::None, 2.86, 1.0, None),
+    };
+    let energy_recharge_requirements = 1.30;
+    let ayaka = optimizers::optimal_kqmc_5_artifacts_stats(&ayaka, &rotation, energy_recharge_requirements);
+    let dps = rotation.evaluate(&ayaka)/21.; // 33263.758
+```
 
 ## Use for Rust
 1. add to rust project
