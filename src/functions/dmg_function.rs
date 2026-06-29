@@ -31,6 +31,7 @@ impl DMGFunction {
             BaseScaling::ATK => formulas::total_atk(&total),
             BaseScaling::DEF => formulas::total_def(&total),
             BaseScaling::HP => formulas::total_hp(&total),
+            BaseScaling::FlatDamage => 1.,
         };
 
         let amplifier_multiplier = match amplifier {

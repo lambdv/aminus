@@ -78,21 +78,24 @@ pub struct CharacterBaseStatJSON {
 
 impl CharacterBaseStatJSON {
     pub fn to_stattable(&self) -> Result<StatTable>{
-        let substat = Stat::from_str(&self.stat_type.as_str())
-            .map_err(|e| anyhow!("failed parse string to stat"))?;
-
-        let substat_value = parse_percentage(self.stat_value.as_str())
-            .map_err(|e| anyhow!("failed to parse string to f32: {}",e))?;
-
-        return Ok(StatTable::of(&[
+        let mut stats = StatTable::of(&[
             (Stat::BaseHP, self.base_hp.parse::<f32>().unwrap()),
             (Stat::BaseATK, self.base_atk.parse::<f32>().unwrap()),
             (Stat::BaseDEF, self.base_def.parse::<f32>().unwrap()),
             (Stat::CritRate, 0.05),
             (Stat::CritDMG, 0.5),
             (Stat::EnergyRecharge, 1.0),
-            (substat, substat_value),
-        ]));
+        ]);
+
+        if self.stat_value != "-" {
+            let substat = Stat::from_str(&self.stat_type.as_str())
+                .map_err(|e| anyhow!("failed parse string to stat"))?;
+            let substat_value = parse_percentage(self.stat_value.as_str())
+                .map_err(|e| anyhow!("failed to parse string to f32: {}",e))?;
+            stats.add(&substat, substat_value);
+        }
+
+        Ok(stats)
     }
 }
 

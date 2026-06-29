@@ -26,25 +26,29 @@ use crate::data::irminsul_adaptor::*;
 /// factory for creating stattables
 pub struct StatFactory{}
 impl StatFactory{
-    /// reads file system to get character base stats of a given name as a stattable 
-    pub fn get_character_base_stats(name: &str) -> Result<StatTable> {
+    /// reads file system to get character base stats of a given name and level as a stattable 
+    pub fn get_character_base_stats(name: &str, level: i8) -> Result<StatTable> {
         let file: File = StatFactory::get_data_file("characters.json")?;
         let list: CharacterList = serde_json::from_reader(BufReader::new(file))?;
         let stat_list = StatFactory::find_match(list.data, name)?;
         
-        stat_list.base_stats.last()
+        stat_list.base_stats.iter()
+            .filter(|s| s.lvl.starts_with(&format!("{level}/")))
+            .last()
             .map(|x| x.to_stattable())
-            .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
+            .ok_or_else(|| anyhow!("no character base stats found for level {level}"))?
     }
 
-    pub fn get_weapon_base_stats(name: &str) -> Result<StatTable> {
+    pub fn get_weapon_base_stats(name: &str, level: i8) -> Result<StatTable> {
         let file = StatFactory::get_data_file("weapons.json")?;
         let list: WeaponList = serde_json::from_reader(BufReader::new(file))?;
         let stat_list: WeaponJSON = StatFactory::find_match(list.data, name)?;
         
-        stat_list.base_stats.last()
+        stat_list.base_stats.iter()
+            .filter(|s| s.level.starts_with(&format!("{level}/")))
+            .last()
             .map(|x| x.to_stattable())
-            .ok_or_else(|| anyhow!("failed to get last base stat tuple"))?
+            .ok_or_else(|| anyhow!("no weapon base stats found for level {level}"))?
     }
 
     pub fn get_main_stat_value(rarity: i8, level: i8, stat_type: &Stat) -> Result<f32> {
@@ -181,7 +185,7 @@ impl StatFactory{
     }
 
     #[test] fn get_character_expected() {
-        let amber = StatFactory::get_character_base_stats("Amber");
+        let amber = StatFactory::get_character_base_stats("Amber", 90);
         let amber = amber.unwrap();
         assert_eq!(amber.get(&Stat::BaseATK), 223.02);
         assert_eq!(amber.get(&Stat::BaseHP), 9461.18);
@@ -196,16 +200,16 @@ impl StatFactory{
     }
 
     #[test] fn get_chara_fuzzy() {
-        let c1 = StatFactory::get_character_base_stats("Kamisato Ayaka");
+        let c1 = StatFactory::get_character_base_stats("Kamisato Ayaka", 90);
         let c1 = c1.unwrap();
-        let c2 = StatFactory::get_character_base_stats("ayaka");
+        let c2 = StatFactory::get_character_base_stats("ayaka", 90);
         let c2 = c2.unwrap();
 
         assert_eq!(c1, c2);
     }
 
     #[test] fn get_weapon_base_stats_works() {
-        let w = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns");
+        let w = StatFactory::get_weapon_base_stats("A Thousand Blazing Suns", 90);
         
         let w = w.unwrap();
         assert_eq!(w.get(&Stat::BaseATK), 741.0);

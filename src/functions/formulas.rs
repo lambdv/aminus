@@ -82,6 +82,25 @@ pub mod formulas{
             * instances
     }
 
+    pub fn transformative_reaction_bonus(elemental_mastery: f32, reaction_bonus: f32) -> f32 {
+        1.0 + (16.0 * elemental_mastery) / (2000.0 + elemental_mastery) + reaction_bonus
+    }
+
+    pub fn transformative_reaction_damage(
+        level_multiplier: f32,
+        reaction_base_multiplier: f32,
+        elemental_mastery: f32,
+        reaction_bonus: f32,
+        res_multiplier: f32,
+        instances: f32,
+    ) -> f32 {
+        level_multiplier
+            * reaction_base_multiplier
+            * transformative_reaction_bonus(elemental_mastery, reaction_bonus)
+            * res_multiplier
+            * instances
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
